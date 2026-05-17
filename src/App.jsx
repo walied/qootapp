@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useApp, AppProvider } from "./context/AppContext";
-import LandingScreen from "./screens/LandingScreen";
-import LoginScreen from "./screens/LoginScreen";
+function LandingScreen() {
+  return <h1 style={{ color: "white" }}>Landing Screen Works!</h1>;
+}import LoginScreen from "./screens/LoginScreen";
 import QuizScreen from "./screens/QuizScreen";
 import PlanScreen from "./screens/PlanScreen";
 import DashboardScreen from "./screens/DashboardScreen";
