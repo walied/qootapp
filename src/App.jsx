@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useApp, AppProvider } from "./context/AppContext";
 import LandingScreen from "./screens/LandingScreen";
 import LoginScreen from "./screens/LoginScreen";
@@ -12,15 +13,30 @@ import CommunityScreen from "./screens/CommunityScreen";
 import ProfileScreen from "./screens/ProfileScreen";
 
 export default function App() {
+  const [hasError, setHasError] = useState(false);
+
   return (
-    <AppProvider>
-      <AppRouter />
-    </AppProvider>
+    <div onError={(e) => setHasError(true)}>
+      {hasError ? (
+        <div style={{ color: "white", textAlign: "center", padding: 40 }}>
+          <h1>⚠️ خطأ في التطبيق</h1>
+          <p>تحقق من Console المتصفح (F12)</p>
+        </div>
+      ) : (
+        <AppProvider>
+          <AppRouter />
+        </AppProvider>
+      )}
+    </div>
   );
 }
 
 function AppRouter() {
   const { screen } = useApp();
+  console.log("📱 Current screen:", screen); // مراقبة الشاشة الحالية
+
+  // لو screen غير محدد، نعرض landing
+  if (!screen) return <LandingScreen />;
 
   switch (screen) {
     case "landing": return <LandingScreen />;
