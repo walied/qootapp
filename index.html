@@ -10,4 +10,45 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
+  <style>
+  @import url('https://fonts.googleapis.com/css2?family=Alexandria:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+  
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: 'Alexandria', 'Inter', sans-serif;
+    background: #0B0F19;
+    color: #F8FAFC;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    margin: 0;
+  }
+  body.rtl { direction: rtl; font-family: 'Alexandria', sans-serif; }
+  body.ltr { direction: ltr; font-family: 'Inter', sans-serif; }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+
+  .fu { animation: fadeUp .5s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .fu2 { animation: fadeUp .5s .1s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .fu3 { animation: fadeUp .5s .2s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .fu4 { animation: fadeUp .5s .3s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  input[type=number] { -moz-appearance: textfield; }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+
+  .bottom-bar {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom));
+    background: rgba(11, 15, 25, 0.85);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid #334155;
+    z-index: 100;
+  }
+  .has-bottom-bar { padding-bottom: 120px !important; }
+</style>
 </html>
