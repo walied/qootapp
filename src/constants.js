@@ -99,7 +99,7 @@ export const T = {
     lunch: { ar: "☀️ الغداء", en: "☀️ Lunch" },
     dinner: { ar: "🌙 العشاء", en: "🌙 Dinner" },
     snack: { ar: "🍎 وجبة خفيفة", en: "🍎 Snack" },
-    chooseOne: { ar: "💡 اختر بديلاً واحداً فقط لكل وجبة", en: "💡 Choose only one alternative per meal" },
+    chooseOne: { ar: " اختر بديلاً واحداً فقط لكل وجبة", en: " Choose only one alternative per meal" },
     or: { ar: "أو", en: "Or" },
     locked: { ar: "🔒 باقي المحتوى مقفول", en: "🔒 Remaining content locked" },
     lockedDesc: { ar: "ادفع الآن لفتح جميع الوجبات، التمارين المفصلة، والنصائح الكاملة.", en: "Pay now to unlock all meals, detailed workouts, and full tips." },
