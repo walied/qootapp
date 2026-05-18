@@ -56,7 +56,6 @@ export default function PlanScreen() {
         {/* Welcome */}
         <div className="fu" style={{ background: `linear-gradient(135deg,${C.card},${C.cardLight})`, border: `1px solid ${C.border}`, borderRadius: 20, padding: "22px 22px", marginBottom: 14 }}>
           <div style={{ fontSize: 12, color: C.teal, fontWeight: 600, marginBottom: 8 }}>{T.plan.ready[lang]}</div>
-          <div style={{ fontSize: "clamp(1.1rem,3vw,1.4rem)", fontWeight: 700, color: C.text, marginBottom: 8 }}>{T.plan.hello[lang]} {fullName(answers)}</div>
           <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8 }}>{plan.human_intro || plan.summary}</div>
         </div>
 
