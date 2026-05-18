@@ -1,5 +1,5 @@
 import { useApp } from "../context/AppContext";
-import { C, T } from "../constants";
+import { C, T, COUNTRY_DATA } from "../constants";
 import { fullName } from "../utils";
 
 const PAY = {
@@ -39,6 +39,17 @@ export default function PlanScreen() {
     return null;
   })();
 
+  // دالة تحويل اسم الدولة إلى الإنجليزية عند عرض الصفحة بالإنجليزية
+  const getCountryDisplay = (countryName) => {
+    if (lang === "ar") return countryName;
+    const found = COUNTRY_DATA.find(c => c.name === countryName);
+    if (found) {
+      const englishAlias = found.aliases.find(a => /^[a-zA-Z]/.test(a));
+      return englishAlias || found.name;
+    }
+    return countryName;
+  };
+
   return (
     <div style={{ minHeight: "100vh", background: C.bg, fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif", direction: lang === "ar" ? "rtl" : "ltr" }}>
       <div style={{ padding: "16px 20px", borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", gap: 10 }}>
@@ -53,13 +64,13 @@ export default function PlanScreen() {
       </div>
 
       <div style={{ maxWidth: 700, margin: "0 auto", padding: "22px 16px" }}>
-        {/* Welcome */}
+        {/* Welcome – تم حذف سطر "مرحباً" المكرر */}
         <div className="fu" style={{ background: `linear-gradient(135deg,${C.card},${C.cardLight})`, border: `1px solid ${C.border}`, borderRadius: 20, padding: "22px 22px", marginBottom: 14 }}>
           <div style={{ fontSize: 12, color: C.teal, fontWeight: 600, marginBottom: 8 }}>{T.plan.ready[lang]}</div>
           <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8 }}>{plan.human_intro || plan.summary}</div>
         </div>
 
-        {/* Client info */}
+        {/* Client info – تم تحديث اسم الدولة */}
         <div className="fu2" style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 20, padding: "20px 20px", marginBottom: 14 }}>
           <div style={{ fontSize: 14, fontWeight: 600, color: C.teal, marginBottom: 14 }}>{T.plan.your_info[lang]}</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12, fontSize: 13 }}>
@@ -73,7 +84,7 @@ export default function PlanScreen() {
             <div><span style={{ color: C.muted }}>{T.plan.allergies[lang]}:</span> <span style={{ color: C.text }}>{answers.allergies?.join?.(", ") || "—"}</span></div>
             <div><span style={{ color: C.muted }}>{T.plan.activity[lang]}:</span> <span style={{ color: C.text }}>{answers.activity}</span></div>
             <div><span style={{ color: C.muted }}>{T.plan.food_pref[lang]}:</span> <span style={{ color: C.text }}>{answers.food_pref?.join?.(", ") || "—"}</span></div>
-            <div><span style={{ color: C.muted }}>{T.plan.country[lang]}:</span> <span style={{ color: C.text }}>{answers.country}</span></div>
+            <div><span style={{ color: C.muted }}>{T.plan.country[lang]}:</span> <span style={{ color: C.text }}>{getCountryDisplay(answers.country)}</span></div>
           </div>
         </div>
 
@@ -106,7 +117,7 @@ export default function PlanScreen() {
           </div>
         )}
 
-        {/* Weekly plan */}
+        {/* Weekly plan – تم تصحيح جملة الاختيار */}
         <div className="fu3" style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 20, padding: "20px 16px", marginBottom: 14 }}>
           <div style={{ fontSize: 14, fontWeight: 600, color: C.teal, marginBottom: 14 }}>{T.plan.weeklyPlan[lang]} {(!paid) && <span style={{ color: C.amber, fontSize: 12 }}>{T.plan.preview[lang]}</span>}</div>
           <div style={{ display: "flex", gap: 8, overflowX: "auto", marginBottom: 14 }}>
@@ -129,7 +140,7 @@ export default function PlanScreen() {
                       <div style={{ fontSize: 13, color: C.text, fontWeight: 700 }}>{label}</div>
                       {mealObj.macros && <div style={{ fontSize: 11, color: C.teal, background: C.tealGlow, padding: "2px 8px", borderRadius: 6 }}>{mealObj.macros}</div>}
                     </div>
-                    {parts.length > 1 && <div style={{ fontSize: 12, color: C.amber, marginBottom: 6, fontWeight: 600 }}> اختر بديلاً واحداً فقط:</div>}
+                    {parts.length > 1 && <div style={{ fontSize: 12, color: C.amber, marginBottom: 6, fontWeight: 600 }}>💡 {T.plan.chooseOne[lang]}</div>}
                     {parts.map((part, pi) => (
                       <div key={pi} style={{ fontSize: 14, color: C.text, lineHeight: 1.6, marginBottom: 4, display: "flex", gap: 8 }}>
                         <span style={{ color: C.teal, fontWeight: 700 }}>{pi+1}.</span> {part}
@@ -232,7 +243,6 @@ export default function PlanScreen() {
               style={{ width: "100%", background: approved ? C.cardLight : `linear-gradient(135deg,${C.green},${C.greenDark})`, color: approved ? C.muted : "#fff", border: "none", borderRadius: 12, padding: "16px", fontSize: 16, fontWeight: 700, cursor: approved ? "default" : "pointer", fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif", marginBottom: 10 }}>
               {approved ? T.plan.approved[lang] : T.plan.approve[lang]}
             </button>
-            {/* Additional specialist panel code can be added later */}
           </div>
         )}
 
