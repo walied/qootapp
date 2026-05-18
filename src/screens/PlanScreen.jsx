@@ -1,6 +1,116 @@
 import { useApp } from "../context/AppContext";
-import { C, T, COUNTRY_DATA } from "../constants";
+import { C, T } from "../constants";
 import { fullName } from "../utils";
+
+// أعلام الدول
+const COUNTRY_FLAGS = {
+  "مصر": "🇪🇬",
+  "الكويت": "🇰🇼",
+  "المملكة العربية السعودية": "🇸🇦",
+  "الإمارات العربية المتحدة": "🇦🇪",
+  "قطر": "🇶🇦",
+  "البحرين": "🇧🇭",
+  "الأردن": "🇯🇴",
+  "لبنان": "🇱🇧",
+  "سوريا": "🇸🇾",
+  "العراق": "🇮🇶",
+  "اليمن": "🇾🇪",
+  "عُمان": "🇴🇲",
+  "المغرب": "🇲🇦",
+  "تونس": "🇹🇳",
+  "الجزائر": "🇩🇿",
+  "ليبيا": "🇱🇾",
+  "السودان": "🇸🇩",
+  "الصومال": "🇸🇴",
+  "موريتانيا": "🇲🇷",
+  "جيبوتي": "🇩🇯",
+  "جزر القمر": "🇰🇲",
+  "فلسطين": "🇵🇸",
+  "المملكة المتحدة": "🇬🇧",
+  "الولايات المتحدة الأمريكية": "🇺🇸",
+  "كندا": "🇨🇦",
+  "أستراليا": "🇦🇺",
+  "فرنسا": "🇫🇷",
+  "ألمانيا": "🇩🇪",
+  "إيطاليا": "🇮🇹",
+  "إسبانيا": "🇪🇸",
+  "هولندا": "🇳🇱",
+  "بلجيكا": "🇧🇪",
+  "السويد": "🇸🇪",
+  "النرويج": "🇳🇴",
+  "الدنمارك": "🇩🇰",
+  "فنلندا": "🇫🇮",
+  "سويسرا": "🇨🇭",
+  "النمسا": "🇦🇹",
+  "البرتغال": "🇵🇹",
+  "اليونان": "🇬🇷",
+  "تركيا": "🇹🇷",
+  "روسيا": "🇷🇺",
+  "الصين": "🇨🇳",
+  "اليابان": "🇯🇵",
+  "كوريا الجنوبية": "🇰🇷",
+  "الهند": "🇮🇳",
+  "باكستان": "🇵🇰",
+  "بنغلاديش": "🇧🇩",
+  "إندونيسيا": "🇮🇩",
+  "ماليزيا": "🇲🇾",
+  "سنغافورة": "🇸🇬",
+  "الفلبين": "🇵🇭",
+  "تايلاند": "🇹🇭",
+  "إيران": "🇮🇷",
+  "أفغانستان": "🇦🇫",
+  "نيجيريا": "🇳🇬",
+  "كينيا": "🇰🇪",
+  "إثيوبيا": "🇪🇹",
+  "غانا": "🇬🇭",
+  "جنوب أفريقيا": "🇿🇦",
+  "البرازيل": "🇧🇷",
+  "الأرجنتين": "🇦🇷",
+  "المكسيك": "🇲🇽",
+  "ألبانيا": "🇦🇱",
+  "أرمينيا": "🇦🇲",
+  "أذربيجان": "🇦🇿",
+  "البوسنة والهرسك": "🇧🇦",
+  "كرواتيا": "🇭🇷",
+  "التشيك": "🇨🇿",
+  "المجر": "🇭🇺",
+  "بولندا": "🇵🇱",
+  "رومانيا": "🇷🇴",
+  "أوكرانيا": "🇺🇦",
+  "أيرلندا": "🇮🇪",
+  "نيوزيلندا": "🇳🇿",
+  "قيرغيزستان": "🇰🇬",
+  "كازاخستان": "🇰🇿",
+  "أوزبكستان": "🇺🇿",
+  "تركمانستان": "🇹🇲",
+  "طاجيكستان": "🇹🇯",
+  "جورجيا": "🇬🇪",
+  "إريتريا": "🇪🇷",
+  "رواندا": "🇷🇼",
+  "أوغندا": "🇺🇬",
+  "تنزانيا": "🇹🇿",
+  "زيمبابوي": "🇿🇼",
+  "زامبيا": "🇿🇲",
+  "موزمبيق": "🇲🇿",
+  "مدغشقر": "🇲🇬",
+  "الكاميرون": "🇨🇲",
+  "السنغال": "🇸🇳",
+  "ساحل العاج": "🇨🇮",
+  "فيتنام": "🇻🇳",
+  "كمبوديا": "🇰🇭",
+  "ميانمار": "🇲🇲",
+  "سريلانكا": "🇱🇰",
+  "نيبال": "🇳🇵",
+  "كولومبيا": "🇨🇴",
+  "بيرو": "🇵🇪",
+  "شيلي": "🇨🇱",
+  "فنزويلا": "🇻🇪",
+  "كوبا": "🇨🇺",
+  "الدومينيكان": "🇩🇴",
+  "بوليفيا": "🇧🇴",
+  "باراغواي": "🇵🇾",
+  "أوروغواي": "🇺🇾",
+};
 
 const PAY = {
   email: "abuhaa0@gmail.com",
@@ -39,15 +149,8 @@ export default function PlanScreen() {
     return null;
   })();
 
-  // دالة تحويل اسم الدولة إلى الإنجليزية عند عرض الصفحة بالإنجليزية
-  const getCountryDisplay = (countryName) => {
-    if (lang === "ar") return countryName;
-    const found = COUNTRY_DATA.find(c => c.name === countryName);
-    if (found) {
-      const englishAlias = found.aliases.find(a => /^[a-zA-Z]/.test(a));
-      return englishAlias || found.name;
-    }
-    return countryName;
+  const getCountryFlag = (countryName) => {
+    return COUNTRY_FLAGS[countryName] || countryName;
   };
 
   return (
@@ -64,13 +167,13 @@ export default function PlanScreen() {
       </div>
 
       <div style={{ maxWidth: 700, margin: "0 auto", padding: "22px 16px" }}>
-        {/* Welcome – تم حذف سطر "مرحباً" المكرر */}
+        {/* Welcome */}
         <div className="fu" style={{ background: `linear-gradient(135deg,${C.card},${C.cardLight})`, border: `1px solid ${C.border}`, borderRadius: 20, padding: "22px 22px", marginBottom: 14 }}>
           <div style={{ fontSize: 12, color: C.teal, fontWeight: 600, marginBottom: 8 }}>{T.plan.ready[lang]}</div>
           <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8 }}>{plan.human_intro || plan.summary}</div>
         </div>
 
-        {/* Client info – تم تحديث اسم الدولة */}
+        {/* Client info */}
         <div className="fu2" style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 20, padding: "20px 20px", marginBottom: 14 }}>
           <div style={{ fontSize: 14, fontWeight: 600, color: C.teal, marginBottom: 14 }}>{T.plan.your_info[lang]}</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12, fontSize: 13 }}>
@@ -84,7 +187,7 @@ export default function PlanScreen() {
             <div><span style={{ color: C.muted }}>{T.plan.allergies[lang]}:</span> <span style={{ color: C.text }}>{answers.allergies?.join?.(", ") || "—"}</span></div>
             <div><span style={{ color: C.muted }}>{T.plan.activity[lang]}:</span> <span style={{ color: C.text }}>{answers.activity}</span></div>
             <div><span style={{ color: C.muted }}>{T.plan.food_pref[lang]}:</span> <span style={{ color: C.text }}>{answers.food_pref?.join?.(", ") || "—"}</span></div>
-            <div><span style={{ color: C.muted }}>{T.plan.country[lang]}:</span> <span style={{ color: C.text }}>{getCountryDisplay(answers.country)}</span></div>
+            <div><span style={{ color: C.muted }}>{T.plan.country[lang]}:</span> <span style={{ color: C.text, fontSize: 20 }}>{getCountryFlag(answers.country)}</span></div>
           </div>
         </div>
 
@@ -117,7 +220,7 @@ export default function PlanScreen() {
           </div>
         )}
 
-        {/* Weekly plan – تم تصحيح جملة الاختيار */}
+        {/* Weekly plan */}
         <div className="fu3" style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 20, padding: "20px 16px", marginBottom: 14 }}>
           <div style={{ fontSize: 14, fontWeight: 600, color: C.teal, marginBottom: 14 }}>{T.plan.weeklyPlan[lang]} {(!paid) && <span style={{ color: C.amber, fontSize: 12 }}>{T.plan.preview[lang]}</span>}</div>
           <div style={{ display: "flex", gap: 8, overflowX: "auto", marginBottom: 14 }}>
