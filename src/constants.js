@@ -1,18 +1,18 @@
 export const C = {
-  bg: "#0B0F19",
-  card: "#151C2C",
-  cardLight: "#1E293B",
-  border: "#334155",
-  teal: "#145952",
-  tealDark: "#0C3F3A",
-  tealGlow: "#14595225",
-  amber: "#C2952A",
-  amberGlow: "#C2952A25",
-  text: "#F8FAFC",
+  bg: "#0B0F19",        // الخلفية الداكنة (لم تتغير)
+  card: "#151C2C",      // البطاقات (لم تتغير)
+  cardLight: "#1E293B", // بطاقات فاتحة (لم تتغير)
+  border: "#334155",    // الحدود (لم تتغير)
+  teal: "#0C5C59",      // 🟢 كان #145952
+  tealDark: "#094542",  // لون أغمق للتدرجات (اشتققناه من الجديد)
+  tealGlow: "#0C5C5925",// تأثير شفاف
+  amber: "#BF9023",     // 🟠 كان #C2952A
+  amberGlow: "#BF902325",// تأثير شفاف
+  text: "#F8FAFC",      // النص الفاتح (لم يتغير)
   muted: "#94A3B8",
   danger: "#EF4444",
-  green: "#145952",
-  greenDark: "#0C3F3A",
+  green: "#0C5C59",     // يوحد مع teal
+  greenDark: "#094542",
   purple: "#8B5CF6",
 };
 
