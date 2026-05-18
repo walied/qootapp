@@ -129,7 +129,7 @@ export default function PlanScreen() {
                       <div style={{ fontSize: 13, color: C.text, fontWeight: 700 }}>{label}</div>
                       {mealObj.macros && <div style={{ fontSize: 11, color: C.teal, background: C.tealGlow, padding: "2px 8px", borderRadius: 6 }}>{mealObj.macros}</div>}
                     </div>
-                    {parts.length > 1 && <div style={{ fontSize: 12, color: C.amber, marginBottom: 6, fontWeight: 600 }}>💡 اختر بديلاً واحداً فقط:</div>}
+                    {parts.length > 1 && <div style={{ fontSize: 12, color: C.amber, marginBottom: 6, fontWeight: 600 }}> اختر بديلاً واحداً فقط:</div>}
                     {parts.map((part, pi) => (
                       <div key={pi} style={{ fontSize: 14, color: C.text, lineHeight: 1.6, marginBottom: 4, display: "flex", gap: 8 }}>
                         <span style={{ color: C.teal, fontWeight: 700 }}>{pi+1}.</span> {part}
