@@ -2,7 +2,7 @@ import { useApp } from "../context/AppContext";
 import { C, T } from "../constants";
 import { fullName } from "../utils";
 
-// أعلام الدول
+// All country flags
 const COUNTRY_FLAGS = {
   "مصر": "🇪🇬",
   "الكويت": "🇰🇼",
@@ -150,7 +150,7 @@ export default function PlanScreen() {
   })();
 
   const getCountryFlag = (countryName) => {
-    return COUNTRY_FLAGS[countryName] || countryName;
+    return COUNTRY_FLAGS[countryName] || countryName || "🌍";
   };
 
   return (
@@ -173,7 +173,7 @@ export default function PlanScreen() {
           <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8 }}>{plan.human_intro || plan.summary}</div>
         </div>
 
-        {/* Client info */}
+        {/* Client info with flags */}
         <div className="fu2" style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 20, padding: "20px 20px", marginBottom: 14 }}>
           <div style={{ fontSize: 14, fontWeight: 600, color: C.teal, marginBottom: 14 }}>{T.plan.your_info[lang]}</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12, fontSize: 13 }}>
