@@ -190,9 +190,10 @@ export default function QuizScreen() {
                 <div style={{background:`${C.green}12`,border:`2px solid ${C.green}44`,borderRadius:12,padding:"12px 14px",marginBottom:10,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                   <div style={{display:"flex",alignItems:"center",gap:8}}>
                     <span>✅</span>
-                    <span style={{fontSize:15,fontWeight:600,color:C.green}}>
-                      {countrySelected.flag} {lang === "ar" ? countrySelected.nameAr : countrySelected.nameEn}
-                    </span>
+                    <span style={{fontSize:15,fontWeight:600,color:C.green,display:"flex",alignItems:"center",gap:8}}>
+  <img src={countrySelected.flag} alt={countrySelected.nameEn} style={{ width: 24, height: 18 }} />
+  {lang === "ar" ? countrySelected.nameAr : countrySelected.nameEn}
+</span>
                   </div>
                   <button onClick={()=>{setCountrySelected("");setCountrySearch("");}} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:16}}>✕</button>
                 </div>
