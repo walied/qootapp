@@ -41,13 +41,15 @@ export default function PlanScreen() {
 
   // دالة إرجاع علم الدولة من المصفوفة الجديدة COUNTRIES
   const getCountryFlag = (countryName) => {
-    if (!countryName) return "🌍";
-    const found = COUNTRIES.find(
-      c => c.nameAr === countryName || c.nameEn === countryName
-    );
-    if (found) return found.flag;
-    return countryName + " ⚠️";
-  };
+  if (!countryName) return "🌍";
+  const found = COUNTRIES.find(
+    c => c.nameAr === countryName || c.nameEn === countryName
+  );
+  if (found) {
+    return <img src={found.flag} alt={found.nameEn} style={{ width: 24, height: 18, verticalAlign: "middle" }} />;
+  }
+  return countryName + " ⚠️";
+};
 
   return (
     <div style={{ minHeight: "100vh", background: C.bg, fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif", direction: lang === "ar" ? "rtl" : "ltr" }}>
