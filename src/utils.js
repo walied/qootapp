@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
-import { COUNTRY_DATA } from "./constants";
+import { COUNTRIES } from "./constants";
 
 // ===================== COUNTRY SEARCH =====================
 export const searchCountry = (q) => {
   if (!q.trim()) return [];
   const t = q.trim().toLowerCase();
-  return COUNTRY_DATA.filter(c =>
-    c.aliases.some(a => a.includes(t) || t.includes(a))
+  return COUNTRIES.filter(c =>
+    c.nameAr.toLowerCase().includes(t) ||
+    c.nameEn.toLowerCase().includes(t)
   ).slice(0, 8);
 };
 
