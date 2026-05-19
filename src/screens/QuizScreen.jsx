@@ -22,7 +22,7 @@ export default function QuizScreen() {
     if (!canNext) return;
     let val;
     if (q.type === "smart_target") val = targetMode === "healthy" ? String(hw?.ideal || "") : customTarget;
-    else if (q.type === "country_search") val = countrySelected;
+    else if (q.type === "country_search") val = countrySelected?.nameAr || countrySelected;
     else if (q.type === "notes_only") val = inputVal.trim() || (lang === "ar" ? "لم يُذكر" : "Not mentioned");
     else if (["multichoice_notes", "multichoice", "choice"].includes(q.type)) val = selected;
     else val = inputVal.trim();
