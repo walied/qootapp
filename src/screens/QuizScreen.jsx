@@ -206,7 +206,7 @@ export default function QuizScreen() {
                         style={{width:"100%",background:"none",border:"none",borderBottom:i<r.length-1?`1px solid ${C.border}`:"none",padding:"12px 16px",fontSize:14,color:C.text,fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif",cursor:"pointer",textAlign:"right",transition:"background 0.1s",display:"flex",alignItems:"center",gap:8}}
                         onMouseEnter={e=>e.currentTarget.style.background=C.border}
                         onMouseLeave={e=>e.currentTarget.style.background="none"}>
-                        <span>{c.flag}</span>
+<img src={c.flag} alt={c.nameEn} style={{ width: 24, height: 18, flexShrink: 0 }} />               
                         <span>{lang === "ar" ? c.nameAr : c.nameEn}</span>
                       </button>
                     ))}
