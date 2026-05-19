@@ -10,117 +10,120 @@ export default async function handler(req, res) {
     }
 
     const country = userData.country || 'الدولة';
-    const COUNTRY_DATA = [
-      { name: "مصر", aliases: ["مصر", "egypt", "ايجبت"] },
-      { name: "الكويت", aliases: ["الكويت", "كويت", "kuwait"] },
-      { name: "المملكة العربية السعودية", aliases: ["السعودية", "المملكة", "سعودية", "الرياض", "saudi", "ksa", "saudi arabia"] },
-      { name: "الإمارات العربية المتحدة", aliases: ["الامارات", "الإمارات", "دبي", "ابوظبي", "أبوظبي", "uae", "dubai", "emirates"] },
-      { name: "قطر", aliases: ["قطر", "الدوحة", "qatar", "doha"] },
-      { name: "البحرين", aliases: ["البحرين", "بحرين", "bahrain", "المنامة"] },
-      { name: "الأردن", aliases: ["الأردن", "اردن", "عمان", "jordan", "amman"] },
-      { name: "لبنان", aliases: ["لبنان", "بيروت", "lebanon", "beirut"] },
-      { name: "سوريا", aliases: ["سوريا", "دمشق", "syria", "damascus"] },
-      { name: "العراق", aliases: ["العراق", "عراق", "بغداد", "iraq", "baghdad"] },
-      { name: "اليمن", aliases: ["اليمن", "يمن", "صنعاء", "yemen", "sanaa"] },
-      { name: "عُمان", aliases: ["عمان", "سلطنة عمان", "مسقط", "oman", "muscat"] },
-      { name: "المغرب", aliases: ["المغرب", "مغرب", "الرباط", "الدار البيضاء", "morocco", "maroc", "casablanca"] },
-      { name: "تونس", aliases: ["تونس", "تونس العاصمة", "tunisia"] },
-      { name: "الجزائر", aliases: ["الجزائر", "جزائر", "algeria"] },
-      { name: "ليبيا", aliases: ["ليبيا", "طرابلس", "libya", "tripoli"] },
-      { name: "السودان", aliases: ["السودان", "سودان", "الخرطوم", "sudan", "khartoum"] },
-      { name: "الصومال", aliases: ["الصومال", "صومال", "مقديشو", "somalia", "mogadishu"] },
-      { name: "موريتانيا", aliases: ["موريتانيا", "نواكشوط", "mauritania"] },
-      { name: "جيبوتي", aliases: ["جيبوتي", "djibouti"] },
-      { name: "جزر القمر", aliases: ["جزر القمر", "comoros"] },
-      { name: "فلسطين", aliases: ["فلسطين", "غزة", "الضفة", "palestine", "gaza"] },
-      { name: "المملكة المتحدة", aliases: ["المملكة المتحدة", "انجلترا", "إنجلترا", "بريطانيا", "لندن", "uk", "england", "britain", "great britain", "united kingdom", "london"] },
-      { name: "الولايات المتحدة الأمريكية", aliases: ["الولايات المتحدة", "أمريكا", "امريكا", "نيويورك", "usa", "us", "america", "united states", "new york"] },
-      { name: "كندا", aliases: ["كندا", "canada", "toronto", "montreal"] },
-      { name: "أستراليا", aliases: ["استراليا", "أستراليا", "australia", "sydney", "melbourne"] },
-      { name: "فرنسا", aliases: ["فرنسا", "باريس", "france", "paris"] },
-      { name: "ألمانيا", aliases: ["المانيا", "ألمانيا", "برلين", "germany", "berlin"] },
-      { name: "إيطاليا", aliases: ["ايطاليا", "إيطاليا", "روما", "italy", "rome"] },
-      { name: "إسبانيا", aliases: ["اسبانيا", "إسبانيا", "مدريد", "spain", "madrid"] },
-      { name: "هولندا", aliases: ["هولندا", "امستردام", "netherlands", "amsterdam", "holland"] },
-      { name: "بلجيكا", aliases: ["بلجيكا", "بروكسل", "belgium", "brussels"] },
-      { name: "السويد", aliases: ["السويد", "ستوكهولم", "sweden", "stockholm"] },
-      { name: "النرويج", aliases: ["النرويج", "اوسلو", "norway", "oslo"] },
-      { name: "الدنمارك", aliases: ["الدنمارك", "كوبنهاغن", "denmark", "copenhagen"] },
-      { name: "فنلندا", aliases: ["فنلندا", "هلسنكي", "finland", "helsinki"] },
-      { name: "سويسرا", aliases: ["سويسرا", "جنيف", "زيورخ", "switzerland", "geneva", "zurich"] },
-      { name: "النمسا", aliases: ["النمسا", "فيينا", "austria", "vienna"] },
-      { name: "البرتغال", aliases: ["البرتغال", "لشبونة", "portugal", "lisbon"] },
-      { name: "اليونان", aliases: ["اليونان", "اثينا", "greece", "athens"] },
-      { name: "تركيا", aliases: ["تركيا", "اسطنبول", "إسطنبول", "أنقرة", "turkey", "istanbul", "ankara"] },
-      { name: "روسيا", aliases: ["روسيا", "موسكو", "russia", "moscow"] },
-      { name: "الصين", aliases: ["الصين", "بكين", "شنغهاي", "china", "beijing", "shanghai"] },
-      { name: "اليابان", aliases: ["اليابان", "طوكيو", "japan", "tokyo"] },
-      { name: "كوريا الجنوبية", aliases: ["كوريا", "كوريا الجنوبية", "سيول", "south korea", "korea", "seoul"] },
-      { name: "الهند", aliases: ["الهند", "هند", "نيودلهي", "india", "new delhi", "mumbai"] },
-      { name: "باكستان", aliases: ["باكستان", "اسلام اباد", "كراتشي", "pakistan", "islamabad", "karachi"] },
-      { name: "بنغلاديش", aliases: ["بنغلاديش", "داكا", "bangladesh", "dhaka"] },
-      { name: "إندونيسيا", aliases: ["اندونيسيا", "إندونيسيا", "جاكرتا", "indonesia", "jakarta"] },
-      { name: "ماليزيا", aliases: ["ماليزيا", "كوالالمبور", "malaysia", "kuala lumpur", "kl"] },
-      { name: "سنغافورة", aliases: ["سنغافورة", "singapore"] },
-      { name: "الفلبين", aliases: ["الفلبين", "فلبين", "مانيلا", "philippines", "manila"] },
-      { name: "تايلاند", aliases: ["تايلاند", "بانكوك", "thailand", "bangkok"] },
-      { name: "إيران", aliases: ["ايران", "إيران", "طهران", "iran", "tehran"] },
-      { name: "أفغانستان", aliases: ["افغانستان", "أفغانستان", "كابل", "afghanistan", "kabul"] },
-      { name: "نيجيريا", aliases: ["نيجيريا", "لاغوس", "nigeria", "lagos", "abuja"] },
-      { name: "كينيا", aliases: ["كينيا", "نيروبي", "kenya", "nairobi"] },
-      { name: "إثيوبيا", aliases: ["اثيوبيا", "إثيوبيا", "اديس ابابا", "ethiopia", "addis ababa"] },
-      { name: "غانا", aliases: ["غانا", "اكرا", "ghana", "accra"] },
-      { name: "جنوب أفريقيا", aliases: ["جنوب افريقيا", "جنوب أفريقيا", "كيب تاون", "جوهانسبرغ", "south africa", "cape town", "johannesburg"] },
-      { name: "البرازيل", aliases: ["البرازيل", "برازيل", "ساو باولو", "brazil", "sao paulo", "rio"] },
-      { name: "الأرجنتين", aliases: ["الأرجنتين", "أرجنتين", "بوينس أيرس", "argentina", "buenos aires"] },
-      { name: "المكسيك", aliases: ["المكسيك", "مكسيك", "mexico", "mexico city"] },
-      { name: "ألبانيا", aliases: ["البانيا", "ألبانيا", "albania"] },
-      { name: "أرمينيا", aliases: ["ارمينيا", "أرمينيا", "armenia"] },
-      { name: "أذربيجان", aliases: ["اذربيجان", "أذربيجان", "azerbaijan", "baku"] },
-      { name: "البوسنة والهرسك", aliases: ["البوسنة", "Bosnia"] },
-      { name: "كرواتيا", aliases: ["كرواتيا", "croatia", "zagreb"] },
-      { name: "التشيك", aliases: ["التشيك", "براغ", "czech", "prague"] },
-      { name: "المجر", aliases: ["المجر", "هنغاريا", "budapest", "hungary"] },
-      { name: "بولندا", aliases: ["بولندا", "وارسو", "poland", "warsaw"] },
-      { name: "رومانيا", aliases: ["رومانيا", "بوخارست", "romania", "bucharest"] },
-      { name: "أوكرانيا", aliases: ["اوكرانيا", "أوكرانيا", "كييف", "ukraine", "kyiv"] },
-      { name: "أيرلندا", aliases: ["ايرلندا", "أيرلندا", "دبلن", "ireland", "dublin"] },
-      { name: "نيوزيلندا", aliases: ["نيوزيلندا", "new zealand", "auckland"] },
-      { name: "قيرغيزستان", aliases: ["قيرغيزستان", "kyrgyzstan"] },
-      { name: "كازاخستان", aliases: ["كازاخستان", "kazakhstan", "almaty"] },
-      { name: "أوزبكستان", aliases: ["اوزبكستان", "أوزبكستان", "uzbekistan", "tashkent"] },
-      { name: "تركمانستان", aliases: ["تركمانستان", "turkmenistan"] },
-      { name: "طاجيكستان", aliases: ["طاجيكستان", "tajikistan"] },
-      { name: "جورجيا", aliases: ["جورجيا", "تبليسي", "georgia", "tbilisi"] },
-      { name: "إريتريا", aliases: ["اريتريا", "إريتريا", "eritrea"] },
-      { name: "رواندا", aliases: ["رواندا", "rwanda", "kigali"] },
-      { name: "أوغندا", aliases: ["اوغندا", "أوغندا", "uganda", "kampala"] },
-      { name: "تنزانيا", aliases: ["تنزانيا", "دار السلام", "tanzania", "dar es salaam"] },
-      { name: "زيمبابوي", aliases: ["زيمبابوي", "zimbabwe", "harare"] },
-      { name: "زامبيا", aliases: ["زامبيا", "zambia", "lusaka"] },
-      { name: "موزمبيق", aliases: ["موزمبيق", "mozambique", "maputo"] },
-      { name: "مدغشقر", aliases: ["مدغشقر", "madagascar"] },
-      { name: "الكاميرون", aliases: ["الكاميرون", "كاميرون", "cameroon", "yaounde"] },
-      { name: "السنغال", aliases: ["السنغال", "سنغال", "داكار", "senegal", "dakar"] },
-      { name: "ساحل العاج", aliases: ["ساحل العاج", "كوت ديفوار", "ivory coast", "cote d'ivoire", "abidjan"] },
-      { name: "فيتنام", aliases: ["فيتنام", "هانوي", "vietnam", "hanoi", "ho chi minh"] },
-      { name: "كمبوديا", aliases: ["كمبوديا", "بنوم بنه", "cambodia", "phnom penh"] },
-      { name: "ميانمار", aliases: ["ميانمار", "بورما", "myanmar", "burma", "rangoon"] },
-      { name: "سريلانكا", aliases: ["سريلانكا", "sri lanka", "colombo"] },
-      { name: "نيبال", aliases: ["نيبال", "كاتماندو", "nepal", "kathmandu"] },
-      { name: "كولومبيا", aliases: ["كولومبيا", "بوغوتا", "colombia", "bogota"] },
-      { name: "بيرو", aliases: ["بيرو", "ليما", "peru", "lima"] },
-      { name: "شيلي", aliases: ["شيلي", "سانتياغو", "chile", "santiago"] },
-      { name: "فنزويلا", aliases: ["فنزويلا", "كاراكاس", "venezuela", "caracas"] },
-      { name: "كوبا", aliases: ["كوبا", "هافانا", "cuba", "havana"] },
-      { name: "الدومينيكان", aliases: ["الدومينيكان", "جمهورية الدومينيكان", "dominican republic", "santo domingo"] },
-      { name: "بوليفيا", aliases: ["بوليفيا", "لاباز", "bolivia", "la paz"] },
-      { name: "باراغواي", aliases: ["باراغواي", "اسونسيون", "paraguay", "asuncion"] },
-      { name: "أوروغواي", aliases: ["اوروغواي", "أوروغواي", "مونتيفيديو", "uruguay", "montevideo"] }
+    
+    // New unified country list
+    const COUNTRIES = [
+      { nameAr: "مصر", nameEn: "Egypt", flag: "🇪🇬" },
+      { nameAr: "الكويت", nameEn: "Kuwait", flag: "🇰🇼" },
+      { nameAr: "المملكة العربية السعودية", nameEn: "Saudi Arabia", flag: "🇸🇦" },
+      { nameAr: "الإمارات العربية المتحدة", nameEn: "United Arab Emirates", flag: "🇦🇪" },
+      { nameAr: "قطر", nameEn: "Qatar", flag: "🇶🇦" },
+      { nameAr: "البحرين", nameEn: "Bahrain", flag: "🇧🇭" },
+      { nameAr: "الأردن", nameEn: "Jordan", flag: "🇯🇴" },
+      { nameAr: "لبنان", nameEn: "Lebanon", flag: "🇱🇧" },
+      { nameAr: "سوريا", nameEn: "Syria", flag: "🇸🇾" },
+      { nameAr: "العراق", nameEn: "Iraq", flag: "🇮🇶" },
+      { nameAr: "اليمن", nameEn: "Yemen", flag: "🇾🇪" },
+      { nameAr: "عُمان", nameEn: "Oman", flag: "🇴🇲" },
+      { nameAr: "المغرب", nameEn: "Morocco", flag: "🇲🇦" },
+      { nameAr: "تونس", nameEn: "Tunisia", flag: "🇹🇳" },
+      { nameAr: "الجزائر", nameEn: "Algeria", flag: "🇩🇿" },
+      { nameAr: "ليبيا", nameEn: "Libya", flag: "🇱🇾" },
+      { nameAr: "السودان", nameEn: "Sudan", flag: "🇸🇩" },
+      { nameAr: "الصومال", nameEn: "Somalia", flag: "🇸🇴" },
+      { nameAr: "موريتانيا", nameEn: "Mauritania", flag: "🇲🇷" },
+      { nameAr: "جيبوتي", nameEn: "Djibouti", flag: "🇩🇯" },
+      { nameAr: "جزر القمر", nameEn: "Comoros", flag: "🇰🇲" },
+      { nameAr: "فلسطين", nameEn: "Palestine", flag: "🇵🇸" },
+      { nameAr: "المملكة المتحدة", nameEn: "United Kingdom", flag: "🇬🇧" },
+      { nameAr: "الولايات المتحدة الأمريكية", nameEn: "United States", flag: "🇺🇸" },
+      { nameAr: "كندا", nameEn: "Canada", flag: "🇨🇦" },
+      { nameAr: "أستراليا", nameEn: "Australia", flag: "🇦🇺" },
+      { nameAr: "فرنسا", nameEn: "France", flag: "🇫🇷" },
+      { nameAr: "ألمانيا", nameEn: "Germany", flag: "🇩🇪" },
+      { nameAr: "إيطاليا", nameEn: "Italy", flag: "🇮🇹" },
+      { nameAr: "إسبانيا", nameEn: "Spain", flag: "🇪🇸" },
+      { nameAr: "هولندا", nameEn: "Netherlands", flag: "🇳🇱" },
+      { nameAr: "بلجيكا", nameEn: "Belgium", flag: "🇧🇪" },
+      { nameAr: "السويد", nameEn: "Sweden", flag: "🇸🇪" },
+      { nameAr: "النرويج", nameEn: "Norway", flag: "🇳🇴" },
+      { nameAr: "الدنمارك", nameEn: "Denmark", flag: "🇩🇰" },
+      { nameAr: "فنلندا", nameEn: "Finland", flag: "🇫🇮" },
+      { nameAr: "سويسرا", nameEn: "Switzerland", flag: "🇨🇭" },
+      { nameAr: "النمسا", nameEn: "Austria", flag: "🇦🇹" },
+      { nameAr: "البرتغال", nameEn: "Portugal", flag: "🇵🇹" },
+      { nameAr: "اليونان", nameEn: "Greece", flag: "🇬🇷" },
+      { nameAr: "تركيا", nameEn: "Turkey", flag: "🇹🇷" },
+      { nameAr: "روسيا", nameEn: "Russia", flag: "🇷🇺" },
+      { nameAr: "الصين", nameEn: "China", flag: "🇨🇳" },
+      { nameAr: "اليابان", nameEn: "Japan", flag: "🇯🇵" },
+      { nameAr: "كوريا الجنوبية", nameEn: "South Korea", flag: "🇰🇷" },
+      { nameAr: "الهند", nameEn: "India", flag: "🇮🇳" },
+      { nameAr: "باكستان", nameEn: "Pakistan", flag: "🇵🇰" },
+      { nameAr: "بنغلاديش", nameEn: "Bangladesh", flag: "🇧🇩" },
+      { nameAr: "إندونيسيا", nameEn: "Indonesia", flag: "🇮🇩" },
+      { nameAr: "ماليزيا", nameEn: "Malaysia", flag: "🇲🇾" },
+      { nameAr: "سنغافورة", nameEn: "Singapore", flag: "🇸🇬" },
+      { nameAr: "الفلبين", nameEn: "Philippines", flag: "🇵🇭" },
+      { nameAr: "تايلاند", nameEn: "Thailand", flag: "🇹🇭" },
+      { nameAr: "إيران", nameEn: "Iran", flag: "🇮🇷" },
+      { nameAr: "أفغانستان", nameEn: "Afghanistan", flag: "🇦🇫" },
+      { nameAr: "نيجيريا", nameEn: "Nigeria", flag: "🇳🇬" },
+      { nameAr: "كينيا", nameEn: "Kenya", flag: "🇰🇪" },
+      { nameAr: "إثيوبيا", nameEn: "Ethiopia", flag: "🇪🇹" },
+      { nameAr: "غانا", nameEn: "Ghana", flag: "🇬🇭" },
+      { nameAr: "جنوب أفريقيا", nameEn: "South Africa", flag: "🇿🇦" },
+      { nameAr: "البرازيل", nameEn: "Brazil", flag: "🇧🇷" },
+      { nameAr: "الأرجنتين", nameEn: "Argentina", flag: "🇦🇷" },
+      { nameAr: "المكسيك", nameEn: "Mexico", flag: "🇲🇽" },
+      { nameAr: "ألبانيا", nameEn: "Albania", flag: "🇦🇱" },
+      { nameAr: "أرمينيا", nameEn: "Armenia", flag: "🇦🇲" },
+      { nameAr: "أذربيجان", nameEn: "Azerbaijan", flag: "🇦🇿" },
+      { nameAr: "البوسنة والهرسك", nameEn: "Bosnia and Herzegovina", flag: "🇧🇦" },
+      { nameAr: "كرواتيا", nameEn: "Croatia", flag: "🇭🇷" },
+      { nameAr: "التشيك", nameEn: "Czech Republic", flag: "🇨🇿" },
+      { nameAr: "المجر", nameEn: "Hungary", flag: "🇭🇺" },
+      { nameAr: "بولندا", nameEn: "Poland", flag: "🇵🇱" },
+      { nameAr: "رومانيا", nameEn: "Romania", flag: "🇷🇴" },
+      { nameAr: "أوكرانيا", nameEn: "Ukraine", flag: "🇺🇦" },
+      { nameAr: "أيرلندا", nameEn: "Ireland", flag: "🇮🇪" },
+      { nameAr: "نيوزيلندا", nameEn: "New Zealand", flag: "🇳🇿" },
+      { nameAr: "قيرغيزستان", nameEn: "Kyrgyzstan", flag: "🇰🇬" },
+      { nameAr: "كازاخستان", nameEn: "Kazakhstan", flag: "🇰🇿" },
+      { nameAr: "أوزبكستان", nameEn: "Uzbekistan", flag: "🇺🇿" },
+      { nameAr: "تركمانستان", nameEn: "Turkmenistan", flag: "🇹🇲" },
+      { nameAr: "طاجيكستان", nameEn: "Tajikistan", flag: "🇹🇯" },
+      { nameAr: "جورجيا", nameEn: "Georgia", flag: "🇬🇪" },
+      { nameAr: "إريتريا", nameEn: "Eritrea", flag: "🇪🇷" },
+      { nameAr: "رواندا", nameEn: "Rwanda", flag: "🇷🇼" },
+      { nameAr: "أوغندا", nameEn: "Uganda", flag: "🇺🇬" },
+      { nameAr: "تنزانيا", nameEn: "Tanzania", flag: "🇹🇿" },
+      { nameAr: "زيمبابوي", nameEn: "Zimbabwe", flag: "🇿🇼" },
+      { nameAr: "زامبيا", nameEn: "Zambia", flag: "🇿🇲" },
+      { nameAr: "موزمبيق", nameEn: "Mozambique", flag: "🇲🇿" },
+      { nameAr: "مدغشقر", nameEn: "Madagascar", flag: "🇲🇬" },
+      { nameAr: "الكاميرون", nameEn: "Cameroon", flag: "🇨🇲" },
+      { nameAr: "السنغال", nameEn: "Senegal", flag: "🇸🇳" },
+      { nameAr: "ساحل العاج", nameEn: "Ivory Coast", flag: "🇨🇮" },
+      { nameAr: "فيتنام", nameEn: "Vietnam", flag: "🇻🇳" },
+      { nameAr: "كمبوديا", nameEn: "Cambodia", flag: "🇰🇭" },
+      { nameAr: "ميانمار", nameEn: "Myanmar", flag: "🇲🇲" },
+      { nameAr: "سريلانكا", nameEn: "Sri Lanka", flag: "🇱🇰" },
+      { nameAr: "نيبال", nameEn: "Nepal", flag: "🇳🇵" },
+      { nameAr: "كولومبيا", nameEn: "Colombia", flag: "🇨🇴" },
+      { nameAr: "بيرو", nameEn: "Peru", flag: "🇵🇪" },
+      { nameAr: "شيلي", nameEn: "Chile", flag: "🇨🇱" },
+      { nameAr: "فنزويلا", nameEn: "Venezuela", flag: "🇻🇪" },
+      { nameAr: "كوبا", nameEn: "Cuba", flag: "🇨🇺" },
+      { nameAr: "الدومينيكان", nameEn: "Dominican Republic", flag: "🇩🇴" },
+      { nameAr: "بوليفيا", nameEn: "Bolivia", flag: "🇧🇴" },
+      { nameAr: "باراغواي", nameEn: "Paraguay", flag: "🇵🇾" },
+      { nameAr: "أوروغواي", nameEn: "Uruguay", flag: "🇺🇾" },
     ];
 
+    // Find the country – matches by either Arabic or English name
     const countryForPrompt = lang !== 'ar'
-      ? (COUNTRY_DATA.find(c => c.name === country)?.aliases.find(a => /^[a-zA-Z]/.test(a)) || country)
+      ? (COUNTRIES.find(c => c.nameAr === country || c.nameEn === country)?.nameEn || country)
       : country;
 
     const sysPrompt = lang === 'ar'
@@ -211,7 +214,7 @@ WARNING: Any response that does not exactly match this structure will be rejecte
 
     const raw = data.choices[0].message.content;
     
-    // Extract JSON from the response (handles <think> tags and extra text)
+    // Extract JSON from the response
     let planJson = extractJSON(raw);
     
     if (!planJson) {
@@ -225,25 +228,17 @@ WARNING: Any response that does not exactly match this structure will be rejecte
   }
 }
 
-// Improved JSON extraction that handles DeepSeek thinking tags
+// Improved JSON extraction
 function extractJSON(raw) {
-  // Remove <think>...</think> tags (DeepSeek R1 reasoning)
   let cleaned = raw.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
-  
-  // Remove any text before the first '{' and after the last '}'
   const firstBrace = cleaned.indexOf('{');
   const lastBrace = cleaned.lastIndexOf('}');
   if (firstBrace === -1 || lastBrace === -1) return null;
-  
   cleaned = cleaned.substring(firstBrace, lastBrace + 1);
-  
-  // Fix common JSON errors
   cleaned = cleaned.replace(/,\s*}/g, '}').replace(/,\s*\]/g, ']');
-  
   try {
     return JSON.parse(cleaned);
   } catch (e) {
-    // Try fixing unclosed brackets
     const opens = [];
     for (const ch of cleaned) {
       if (ch === '{') opens.push('}');
@@ -251,11 +246,8 @@ function extractJSON(raw) {
       else if (ch === '}' || ch === ']') opens.pop();
     }
     cleaned += opens.reverse().join('');
-    
-    // Fix unclosed quotes
     const quoteCount = (cleaned.match(/(?<!\\)"/g) || []).length;
     if (quoteCount % 2 !== 0) cleaned += '"';
-    
     try {
       return JSON.parse(cleaned);
     } catch (e2) {
