@@ -176,7 +176,7 @@ export default function QuizScreen() {
             </div>
           )}
 
-          {/* Country search */}
+          {/* Country search – FIXED */}
           {q.type==="country_search"&&(
             <div>
               <div style={{position:"relative",marginBottom:10}}>
@@ -188,7 +188,12 @@ export default function QuizScreen() {
               </div>
               {countrySelected&&(
                 <div style={{background:`${C.green}12`,border:`2px solid ${C.green}44`,borderRadius:12,padding:"12px 14px",marginBottom:10,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                  <div style={{display:"flex",alignItems:"center",gap:8}}><span>✅</span><span style={{fontSize:15,fontWeight:600,color:C.green}}>{countrySelected}</span></div>
+                  <div style={{display:"flex",alignItems:"center",gap:8}}>
+                    <span>✅</span>
+                    <span style={{fontSize:15,fontWeight:600,color:C.green}}>
+                      {countrySelected.flag} {lang === "ar" ? countrySelected.nameAr : countrySelected.nameEn}
+                    </span>
+                  </div>
                   <button onClick={()=>{setCountrySelected("");setCountrySearch("");}} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:16}}>✕</button>
                 </div>
               )}
@@ -197,31 +202,17 @@ export default function QuizScreen() {
                 return r.length>0?(
                   <div style={{background:C.cardLight,border:`1px solid ${C.border}`,borderRadius:12,overflow:"hidden",maxHeight:220,overflowY:"auto"}}>
                     {r.map((c,i)=>(
-                      <button key={c.name} onClick={()=>{setCountrySelected(c.name);setCountrySearch(c.name);}}
-                        style={{width:"100%",background:"none",border:"none",borderBottom:i<r.length-1?`1px solid ${C.border}`:"none",padding:"12px 16px",fontSize:14,color:C.text,fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif",cursor:"pointer",textAlign:"right",transition:"background 0.1s"}}
+                      <button key={c.nameAr} onClick={()=>{setCountrySelected(c);setCountrySearch("");}}
+                        style={{width:"100%",background:"none",border:"none",borderBottom:i<r.length-1?`1px solid ${C.border}`:"none",padding:"12px 16px",fontSize:14,color:C.text,fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif",cursor:"pointer",textAlign:"right",transition:"background 0.1s",display:"flex",alignItems:"center",gap:8}}
                         onMouseEnter={e=>e.currentTarget.style.background=C.border}
                         onMouseLeave={e=>e.currentTarget.style.background="none"}>
-                        {c.name}
+                        <span>{c.flag}</span>
+                        <span>{lang === "ar" ? c.nameAr : c.nameEn}</span>
                       </button>
                     ))}
                   </div>
                 ):<div style={{background:C.cardLight,border:`1px solid ${C.border}`,borderRadius:12,padding:"14px",textAlign:"center",color:C.muted,fontSize:14}}>{T.quiz.noResults[lang]}</div>;
               })()}
-              {!countrySearch&&!countrySelected&&(
-                <div>
-                  <div style={{fontSize:12,color:C.muted,marginBottom:8}}>{T.quiz.popularCountries[lang]}:</div>
-                  <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
-                    {["مصر","الكويت","المملكة العربية السعودية","الإمارات العربية المتحدة","قطر","الأردن","المغرب","تونس"].map(c=>(
-                      <button key={c} onClick={()=>{setCountrySelected(c);setCountrySearch(c);}}
-                        style={{background:C.cardLight,border:`1px solid ${C.border}`,borderRadius:10,padding:"7px 13px",fontSize:13,color:C.text,fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif",cursor:"pointer",transition:"all 0.15s"}}
-                        onMouseEnter={e=>{e.currentTarget.style.borderColor=C.teal;e.currentTarget.style.color=C.teal;}}
-                        onMouseLeave={e=>{e.currentTarget.style.borderColor=C.border;e.currentTarget.style.color=C.text;}}>
-                        {c}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           )}
         </div>
