@@ -6,7 +6,7 @@ export default async function handler(req, res) {
 
     const country = userData.country || 'الدولة';
     const COUNTRIES = [
-  { nameAr: "مصر", nameEn: "Egypt", flag: "https://flagcdn.com/w40/eg.png" },
+     { nameAr: "مصر", nameEn: "Egypt", flag: "https://flagcdn.com/w40/eg.png" },
   { nameAr: "الكويت", nameEn: "Kuwait", flag: "https://flagcdn.com/w40/kw.png" },
   { nameAr: "المملكة العربية السعودية", nameEn: "Saudi Arabia", flag: "https://flagcdn.com/w40/sa.png" },
   { nameAr: "الإمارات العربية المتحدة", nameEn: "United Arab Emirates", flag: "https://flagcdn.com/w40/ae.png" },
@@ -135,8 +135,7 @@ export default async function handler(req, res) {
     let weeks = Math.ceil(weightToLose / 0.5);
 
     const sysPrompt = lang === 'ar'
-      ? `أنت أخصائي تغذية. أعد JSON صارم بالهيكل التالي. استخدم المفاتيح الإنجليزية فقط (مثل "breakfast", "lunch", "dinner", "snack", "options", "macros", "day"). كل يوم يحتوي 4 وجبات مختلفة مع 2-3 بدائل لكل وجبة. الروتين الرياضي مفصّل يومياً وليس نصاً عاماً. النصائح 5 نصائح مخصصة. جميع النصوص بالعربية.
-
+      ? `أنت أخصائي تغذية. أعد JSON صارم بالهيكل التالي. استخدم المفاتيح الإنجليزية فقط (breakfast, lunch, dinner, snack). كل يوم 4 وجبات مختلفة مع 2-3 بدائل. الروتين الرياضي مفصّل يومياً وليس نصاً عاماً. 5 نصائح مخصصة. جميع النصوص بالعربية.
 هيكل JSON:
 {
   "human_intro": "رسالة ترحيب",
@@ -154,13 +153,11 @@ export default async function handler(req, res) {
     },
     ... (7 أيام مختلفة تماماً)
   ],
-  "home_workout": "روتين رياضي يومي مفصل (كل يوم تمارينه)",
+  "home_workout": "روتين رياضي يومي مفصل (كل يوم له تمارينه)",
   "tips": ["نصيحة 1", "نصيحة 2", "نصيحة 3", "نصيحة 4", "نصيحة 5"],
   "specialist_notes": "ملاحظات طبية"
-}
-استخدم المكونات المحلية الرخيصة في ${countryForPrompt}. لا تكرر الوجبات عبر الأيام.`
-      : `You are a nutritionist. Output strict JSON with ENGLISH keys only. Each day has 4 different meals (breakfast, lunch, dinner, snack) with 2-3 options each. Detailed daily home workout. 5 personalized tips. All text in English.
-
+}`
+      : `You are a nutritionist. Output strict JSON with ENGLISH keys only. Each day has 4 different meals with 2-3 options. Detailed daily home workout. 5 personalized tips. All text in English.
 JSON structure:
 {
   "human_intro": "Welcome message",
@@ -181,8 +178,7 @@ JSON structure:
   "home_workout": "Detailed daily home workout (different each day)",
   "tips": ["Tip1", "Tip2", "Tip3", "Tip4", "Tip5"],
   "specialist_notes": "Medical notes"
-}
-Use cheap local ingredients in ${countryForPrompt}. No repetition across days.`;
+}`;
 
     const fullUserPrompt = lang === 'ar'
       ? `البيانات: الاسم: ${userData.first_name || ''}، العمر: ${age}، الجنس: ${gender || ''}، الوزن: ${weight}كجم، الطول: ${height}سم، الهدف: ${userData.target_weight || ''}كجم، الأمراض: ${[userData.health_conditions].flat().join(', ')}، الحساسية: ${[userData.allergies].flat().join(', ') || 'لا'}، النشاط: ${activity || ''}، تفضيلات الطعام: ${[userData.food_pref].flat().join(', ') || 'كل شيء'}، البلد: ${countryForPrompt}`
@@ -216,10 +212,60 @@ Use cheap local ingredients in ${countryForPrompt}. No repetition across days.`;
     let planJson = extractJSON(raw);
     if (!planJson) return res.status(500).json({ error: 'Failed to parse AI response as JSON', raw: raw.substring(0, 200) });
 
+    // إنشاء تمارين افتراضية إذا لم تكن موجودة
+    if (!planJson.home_workout || planJson.home_workout === 'تمارين منزلية يومية' || planJson.home_workout.length < 20) {
+      planJson.home_workout = generateWorkout(lang, activity);
+    }
+    // إنشاء نصائح افتراضية إذا لم تكن موجودة
+    if (!planJson.tips || !Array.isArray(planJson.tips) || planJson.tips.length === 0 || planJson.tips[0] === 'اتبع خطتك') {
+      planJson.tips = generateTips(lang, userData);
+    }
+
     const standardized = robustStandardizePlan(planJson, userData, lang, targetCalories, weightToLose, weeks);
     res.status(200).json({ plan: JSON.stringify(standardized) });
   } catch (error) {
     return res.status(500).json({ error: error.message });
+  }
+}
+
+function generateWorkout(lang, activity) {
+  if (lang === 'ar') {
+    return `السبت: إحماء 5 دقائق، قفز بالحبل 3 مجموعات × 30 ثانية، ضغط 3×10، قرفصاء 3×15، بلانك 3×30 ثانية، تمدد 5 دقائق.
+الأحد: إحماء، طعنات 3×12 لكل رجل، بيربيز 3×10، رفع الساقين 3×20، كارديو خفيف 10 دقائق.
+الإثنين: راحة.
+الثلاثاء: إحماء، تمارين مقاومة باستخدام زجاجات ماء 3×15، خطف 3×12، مشي في المكان 15 دقيقة.
+الأربعاء: إحماء، يوغا أو تمدد عميق 20 دقيقة.
+الخميس: إحماء، قفز مع رفع الركبة 3×20، ضغط على الحائط 3×15، تمارين بطن دراجة 3×20، بلانك جانبي 3×20 ثانية.
+الجمعة: إحماء، تمارين كارديو (قفز النجم، ركض في المكان) 15 دقيقة، تهدئة 5 دقائق.`;
+  } else {
+    return `Saturday: Warm up 5min, jump rope 3x30sec, push-ups 3x10, squats 3x15, plank 3x30sec, cool down 5min.
+Sunday: Warm up, lunges 3x12 per leg, burpees 3x10, leg raises 3x20, light cardio 10min.
+Monday: Rest.
+Tuesday: Warm up, resistance exercises with water bottles 3x15, snatch 3x12, march in place 15min.
+Wednesday: Warm up, yoga/deep stretch 20min.
+Thursday: Warm up, high knee jumps 3x20, wall push-ups 3x15, bicycle crunches 3x20, side plank 3x20sec.
+Friday: Warm up, cardio (star jumps, jog in place) 15min, cool down 5min.`;
+  }
+}
+
+function generateTips(lang, userData) {
+  const conditions = userData.health_conditions?.join?.(',') || '';
+  if (lang === 'ar') {
+    return [
+      'تناول 5-6 وجبات صغيرة يومياً بدلاً من 3 وجبات كبيرة.',
+      'اشرب كوباً من الماء قبل كل وجبة بـ 10 دقائق.',
+      conditions.includes('سكري') ? 'تجنب الفواكه العالية بالسكر مثل العنب والمانجو.' : 'تناول الفواكه الكاملة بدلاً من العصائر.',
+      'استخدم طبقاً أصغر للتحكم في كمية الطعام.',
+      'قم بالمشي 10 دقائق بعد كل وجبة.',
+    ];
+  } else {
+    return [
+      'Eat 5-6 small meals daily instead of 3 large ones.',
+      'Drink a glass of water 10 minutes before each meal.',
+      conditions.includes('Diabetes') ? 'Avoid high-sugar fruits like grapes and mango.' : 'Eat whole fruits instead of juices.',
+      'Use a smaller plate to control portions.',
+      'Walk for 10 minutes after each meal.',
+    ];
   }
 }
 
@@ -245,7 +291,6 @@ function extractJSON(raw) {
 }
 
 function robustStandardizePlan(plan, userData, lang, targetCalories, weightToLose, weeks) {
-  // مفتاح عربي -> إنجليزي للوجبات
   const MEAL_KEY_MAP = {
     'الإفطار': 'breakfast', 'افطار': 'breakfast', 'فطور': 'breakfast',
     'الغداء': 'lunch', 'غداء': 'lunch',
@@ -259,17 +304,14 @@ function robustStandardizePlan(plan, userData, lang, targetCalories, weightToLos
 
   let weeklyPlan = [];
   let rawPlan = plan.weekly_plan || [];
-
-  // إذا كان rawPlan مصفوفة
   if (Array.isArray(rawPlan)) {
     weeklyPlan = rawPlan.slice(0, 7).map((day, i) => {
       let dayObj = { day: day.day || days[i], breakfast: null, lunch: null, dinner: null, snack: null };
-      // نقل أي مفتاح عربي إلى الإنجليزي
       Object.keys(day).forEach(key => {
         const mapped = MEAL_KEY_MAP[key] || key;
         if (['breakfast', 'lunch', 'dinner', 'snack'].includes(mapped)) {
           let meal = day[key];
-          if (!meal) meal = day[mapped]; // fallback
+          if (!meal) meal = day[mapped];
           if (meal) {
             dayObj[mapped] = {
               options: Array.isArray(meal.options) ? meal.options : (Array.isArray(meal) ? meal : [meal]),
@@ -278,19 +320,16 @@ function robustStandardizePlan(plan, userData, lang, targetCalories, weightToLos
           }
         }
       });
-      // ضمان 4 وجبات
       ['breakfast', 'lunch', 'dinner', 'snack'].forEach(slot => {
         if (!dayObj[slot] || !dayObj[slot].options || dayObj[slot].options.length === 0) {
           dayObj[slot] = { options: ['وجبة مقترحة'], macros: '' };
         } else {
-          // تحويل الخيارات إلى نصوص
           dayObj[slot].options = dayObj[slot].options.map(opt => typeof opt === 'string' ? opt : (opt.name || opt.meal || JSON.stringify(opt)));
         }
       });
       return dayObj;
     });
   } else {
-    // لا يوجد weekly_plan – إنشاء فارغ
     for (let i = 0; i < 7; i++) {
       weeklyPlan.push({
         day: days[i],
@@ -302,18 +341,15 @@ function robustStandardizePlan(plan, userData, lang, targetCalories, weightToLos
     }
   }
 
-  // استخراج التمارين والنصائح
-  let homeWorkout = 'تمارين منزلية يومية';
-  if (typeof plan.home_workout === 'string') homeWorkout = plan.home_workout;
-  else if (plan.home_exercise_plan || plan['تمارين_رياضية_منزلية'] || plan['رياضة_منزلية'] || plan.exercise) {
-    let src = plan.home_exercise_plan || plan['تمارين_رياضية_منزلية'] || plan['رياضة_منزلية'] || plan.exercise;
-    if (typeof src === 'string') homeWorkout = src;
-    else if (typeof src === 'object') homeWorkout = JSON.stringify(src);
+  let homeWorkout = plan.home_workout || '';
+  if (!homeWorkout || homeWorkout.length < 20) {
+    homeWorkout = generateWorkout(lang, userData.activity);
   }
 
-  let tips = plan.tips || plan['نصائح_عامة'] || plan['نصائح_إضافية'] || plan.additional_advice || [];
-  if (!Array.isArray(tips)) tips = [tips];
-  if (tips.length === 0) tips = ['اتبع خطتك'];
+  let tips = plan.tips || [];
+  if (!Array.isArray(tips) || tips.length === 0) {
+    tips = generateTips(lang, userData);
+  }
 
   return {
     human_intro: plan.human_intro || (lang === 'ar' ? `مرحباً ${userData.first_name || ''}!` : `Welcome ${userData.first_name || ''}!`),
