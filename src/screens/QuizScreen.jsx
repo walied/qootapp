@@ -101,7 +101,7 @@ export default function QuizScreen() {
             </div>
           )}
 
-          {/* ========== SINGLE CHOICE (الجنس) – أزرار بدون onMouseDown ========== */}
+          {/* ========== SINGLE CHOICE (الجنس) – ضبط نهائي ========== */}
           {q.type === "choice" && (
             <div>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
@@ -111,7 +111,7 @@ export default function QuizScreen() {
                     <button
                       key={opt}
                       type="button"
-                      onClick={() => toggle(opt)}
+                      onClick={() => setSelected([opt])}
                       style={{
                         background:active?C.tealGlow:C.cardLight,
                         border:`2px solid ${active?C.teal:C.border}`,
@@ -141,7 +141,7 @@ export default function QuizScreen() {
             </div>
           )}
 
-          {/* ========== MULTI CHOICE – أزرار بدون onMouseDown ========== */}
+          {/* ========== MULTI CHOICE – بدون تغيير ========== */}
           {q.type !== "choice" && ["multichoice","multichoice_notes"].includes(q.type) && (
             <div>
               <div style={{display:"grid",gridTemplateColumns:q.options?.length>4?"1fr 1fr":"1fr",gap:8,marginBottom:8}}>
@@ -235,7 +235,7 @@ export default function QuizScreen() {
             </div>
           )}
 
-          {/* Country search – أزرار بدون onMouseDown */}
+          {/* Country search – بدون onMouseDown */}
           {q.type==="country_search"&&(
             <div>
               <div style={{position:"relative",marginBottom:10}}>
