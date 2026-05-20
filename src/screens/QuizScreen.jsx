@@ -48,8 +48,7 @@ export default function QuizScreen() {
       });
       if (!res.ok) { const errData = await res.json().catch(() => ({})); throw new Error(errData.error || `HTTP error! status: ${res.status}`); }
       const data = await res.json();
-      const rawWithFix = data.plan;
-      let planData = safeParseJSON(rawWithFix);
+      let planData = safeParseJSON(data.plan);
       planData = normalizePlan(planData, all, lang);
       setPlan(planData);
       localStorage.setItem("qoot_plan", JSON.stringify(planData));
@@ -102,21 +101,18 @@ export default function QuizScreen() {
             </div>
           )}
 
-          {/* Choices – FIXED mouse click */}
+          {/* Choices – FIXED MOUSE CLICK */}
           {["choice","multichoice","multichoice_notes"].includes(q.type)&&(
             <div>
               <div style={{display:"grid",gridTemplateColumns:q.options?.length>4?"1fr 1fr":"1fr",gap:8,marginBottom:8}}>
                 {(typeof q.options === 'object' && !Array.isArray(q.options) ? q.options[lang] : q.options)?.map(opt=>{
                   const active=selected.includes(opt);
                   return(
-                    <button
+                    <div
                       key={opt}
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        toggle(opt);
-                      }}
+                      onClick={() => toggle(opt)}
+                      role="button"
+                      tabIndex={0}
                       style={{
                         background:active?C.tealGlow:C.cardLight,
                         border:`2px solid ${active?C.teal:C.border}`,
@@ -139,7 +135,7 @@ export default function QuizScreen() {
                         {active&&<span style={{color:"#fff",fontSize:10,fontWeight:700}}>✓</span>}
                       </span>
                       {opt}
-                    </button>
+                    </div>
                   );
                 })}
               </div>
@@ -178,18 +174,18 @@ export default function QuizScreen() {
                   <div style={{textAlign:"center"}}><div style={{fontSize:26,fontWeight:700,color:C.teal}}>{bmiInfo.v}</div><div style={{fontSize:11,color:C.muted}}>{T.quiz.bmi[lang]}</div></div>
                 </div>
               )}
-              <button onClick={()=>setTargetMode("healthy")} style={{width:"100%",background:targetMode==="healthy"?`${C.green}12`:C.cardLight,border:`2px solid ${targetMode==="healthy"?C.green:C.border}`,borderRadius:12,padding:"15px 16px",marginBottom:10,cursor:"pointer",textAlign:"right",transition:"all 0.15s",fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif"}}>
+              <div onClick={()=>setTargetMode("healthy")} role="button" tabIndex={0} style={{width:"100%",background:targetMode==="healthy"?`${C.green}12`:C.cardLight,border:`2px solid ${targetMode==="healthy"?C.green:C.border}`,borderRadius:12,padding:"15px 16px",marginBottom:10,cursor:"pointer",textAlign:"right",transition:"all 0.15s",fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif"}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                   <div><div style={{fontSize:12,color:C.muted,marginBottom:4}}>{T.quiz.healthyWeight[lang]}</div><div style={{fontSize:18,fontWeight:700,color:targetMode==="healthy"?C.green:C.text}}>{hw.ideal} {lang === "ar" ? "كجم" : "kg"}</div><div style={{fontSize:12,color:C.muted,marginTop:2}}>{T.quiz.healthyRange[lang]}: {hw.min} — {hw.max} {lang === "ar" ? "كجم" : "kg"}</div></div>
                   <span style={{fontSize:22}}>{targetMode==="healthy"?"✅":"⚖️"}</span>
                 </div>
-              </button>
-              <button onClick={()=>setTargetMode("custom")} style={{width:"100%",background:targetMode==="custom"?C.amberGlow:C.cardLight,border:`2px solid ${targetMode==="custom"?C.amber:C.border}`,borderRadius:12,padding:"13px 16px",marginBottom:targetMode==="custom"?10:0,cursor:"pointer",textAlign:"right",transition:"all 0.15s",fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif"}}>
+              </div>
+              <div onClick={()=>setTargetMode("custom")} role="button" tabIndex={0} style={{width:"100%",background:targetMode==="custom"?C.amberGlow:C.cardLight,border:`2px solid ${targetMode==="custom"?C.amber:C.border}`,borderRadius:12,padding:"13px 16px",marginBottom:targetMode==="custom"?10:0,cursor:"pointer",textAlign:"right",transition:"all 0.15s",fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif"}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                   <span style={{fontSize:14,fontWeight:600,color:targetMode==="custom"?C.amber:C.text}}>{T.quiz.customTarget[lang]}</span>
                   <span style={{fontSize:18}}>{targetMode==="custom"?"✏️":"➕"}</span>
                 </div>
-              </button>
+              </div>
               {targetMode==="custom"&&(
                 <div style={{position:"relative"}}>
                   <input ref={inputRef} type="number" placeholder={lang === "ar" ? "مثال: 75" : "Example: 75"} value={customTarget} onChange={e=>setCustomTarget(e.target.value)} autoFocus
@@ -219,7 +215,7 @@ export default function QuizScreen() {
                       {lang === "ar" ? countrySelected.nameAr : countrySelected.nameEn}
                     </span>
                   </div>
-                  <button onClick={()=>{setCountrySelected("");setCountrySearch("");}} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:16}}>✕</button>
+                  <div onClick={()=>{setCountrySelected("");setCountrySearch("");}} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:16}} role="button" tabIndex={0}>✕</div>
                 </div>
               )}
               {countrySearch.trim()&&!countrySelected&&(()=>{
@@ -227,13 +223,12 @@ export default function QuizScreen() {
                 return r.length>0?(
                   <div style={{background:C.cardLight,border:`1px solid ${C.border}`,borderRadius:12,overflow:"hidden",maxHeight:220,overflowY:"auto"}}>
                     {r.map((c,i)=>(
-                      <button key={c.nameAr} onClick={()=>{setCountrySelected(c);setCountrySearch("");}}
+                      <div key={c.nameAr} onClick={()=>{setCountrySelected(c);setCountrySearch("");}}
                         style={{width:"100%",background:"none",border:"none",borderBottom:i<r.length-1?`1px solid ${C.border}`:"none",padding:"12px 16px",fontSize:14,color:C.text,fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif",cursor:"pointer",textAlign:"right",transition:"background 0.1s",display:"flex",alignItems:"center",gap:8}}
-                        onMouseEnter={e=>e.currentTarget.style.background=C.border}
-                        onMouseLeave={e=>e.currentTarget.style.background="none"}>
+                        role="button" tabIndex={0}>
                         <img src={c.flag} alt="" style={{width:24,height:18,flexShrink:0}} />
                         <span>{lang === "ar" ? c.nameAr : c.nameEn}</span>
-                      </button>
+                      </div>
                     ))}
                   </div>
                 ):<div style={{background:C.cardLight,border:`1px solid ${C.border}`,borderRadius:12,padding:"14px",textAlign:"center",color:C.muted,fontSize:14}}>{T.quiz.noResults[lang]}</div>;
@@ -243,11 +238,10 @@ export default function QuizScreen() {
         </div>
 
         <div className="bottom-bar" style={{display:"flex",gap:12,alignItems:"center",justifyContent:"center"}}>
-          {currentQ>0&&<button onClick={()=>{setCurrentQ(currentQ-1);resetFields();}} style={{background:C.cardLight,border:`1px solid ${C.border}`,color:C.text,borderRadius:12,padding:"16px 20px",fontSize:15,fontWeight:600,cursor:"pointer",fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif",transition:"all 0.2s"}}>{T.quiz.back[lang]}</button>}
-          <button onClick={next} disabled={!canNext}
-            style={{flex:1,maxWidth:400,background:canNext?`linear-gradient(135deg,${C.teal},${C.tealDark})`:C.border,color:canNext?"#fff":C.muted,border:"none",borderRadius:12,padding:"16px",fontSize:16,fontWeight:700,cursor:canNext?"pointer":"default",fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif",transition:"all 0.2s",boxShadow:canNext?`0 4px 14px ${C.tealGlow}`:"none"}}>
+          {currentQ>0&&<div onClick={()=>{setCurrentQ(currentQ-1);resetFields();}} style={{background:C.cardLight,border:`1px solid ${C.border}`,color:C.text,borderRadius:12,padding:"16px 20px",fontSize:15,fontWeight:600,cursor:"pointer",fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif",transition:"all 0.2s"}} role="button" tabIndex={0}>{T.quiz.back[lang]}</div>}
+          <div onClick={next} style={{flex:1,maxWidth:400,background:canNext?`linear-gradient(135deg,${C.teal},${C.tealDark})`:C.border,color:canNext?"#fff":C.muted,border:"none",borderRadius:12,padding:"16px",fontSize:16,fontWeight:700,cursor:canNext?"pointer":"default",fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif",transition:"all 0.2s",boxShadow:canNext?`0 4px 14px ${C.tealGlow}`:"none",textAlign:"center",opacity:canNext?1:0.5}} role="button" tabIndex={0}>
             {currentQ===QUESTIONS.length-1?T.quiz.generate[lang]:T.quiz.next[lang]}
-          </button>
+          </div>
         </div>
       </div>
     </>
