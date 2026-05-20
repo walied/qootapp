@@ -10,6 +10,7 @@ import FollowUpScreen from "./screens/FollowUpScreen";
 import FollowUpPlanScreen from "./screens/FollowUpPlanScreen";
 import CommunityScreen from "./screens/CommunityScreen";
 import ProfileScreen from "./screens/ProfileScreen";
+import AuthScreen from "./screens/AuthScreen";
 
 export default function App() {
   return (
@@ -20,8 +21,13 @@ export default function App() {
 }
 
 function AppRouter() {
-  const { screen } = useApp();
-  if (!screen) return <LandingScreen />;
+  const { screen, uid } = useApp();
+
+  // Protect routes that require authentication
+  const requiresAuth = ["dashboard", "community", "profile"];
+  if (requiresAuth.includes(screen) && !uid) {
+    return <AuthScreen />;
+  }
 
   switch (screen) {
     case "landing": return <LandingScreen />;
@@ -35,6 +41,7 @@ function AppRouter() {
     case "followup_plan": return <FollowUpPlanScreen />;
     case "community": return <CommunityScreen />;
     case "profile": return <ProfileScreen />;
+    case "auth": return <AuthScreen />;
     default: return <LandingScreen />;
   }
 }
