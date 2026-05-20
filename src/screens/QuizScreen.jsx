@@ -101,7 +101,7 @@ export default function QuizScreen() {
             </div>
           )}
 
-          {/* ========== SINGLE CHOICE (الجنس) – أزرار مباشرة ========== */}
+          {/* ========== SINGLE CHOICE (الجنس) – أزرار بدون onMouseDown ========== */}
           {q.type === "choice" && (
             <div>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
@@ -112,7 +112,6 @@ export default function QuizScreen() {
                       key={opt}
                       type="button"
                       onClick={() => toggle(opt)}
-                      onMouseDown={(e) => e.preventDefault()}
                       style={{
                         background:active?C.tealGlow:C.cardLight,
                         border:`2px solid ${active?C.teal:C.border}`,
@@ -142,7 +141,7 @@ export default function QuizScreen() {
             </div>
           )}
 
-          {/* ========== MULTI CHOICE – أزرار (لم تتغير) ========== */}
+          {/* ========== MULTI CHOICE – أزرار بدون onMouseDown ========== */}
           {q.type !== "choice" && ["multichoice","multichoice_notes"].includes(q.type) && (
             <div>
               <div style={{display:"grid",gridTemplateColumns:q.options?.length>4?"1fr 1fr":"1fr",gap:8,marginBottom:8}}>
@@ -153,7 +152,6 @@ export default function QuizScreen() {
                       key={opt}
                       type="button"
                       onClick={() => toggle(opt)}
-                      onMouseDown={(e) => e.preventDefault()}
                       style={{
                         background:active?C.tealGlow:C.cardLight,
                         border:`2px solid ${active?C.teal:C.border}`,
@@ -237,7 +235,7 @@ export default function QuizScreen() {
             </div>
           )}
 
-          {/* Country search – بقيت كما هي (بدون تغيير) */}
+          {/* Country search – أزرار بدون onMouseDown */}
           {q.type==="country_search"&&(
             <div>
               <div style={{position:"relative",marginBottom:10}}>
@@ -268,7 +266,6 @@ export default function QuizScreen() {
                         key={c.nameAr}
                         type="button"
                         onClick={()=>{setCountrySelected(c);setCountrySearch("");}}
-                        onMouseDown={(e) => e.preventDefault()}
                         style={{width:"100%",background:"none",border:"none",borderBottom:i<r.length-1?`1px solid ${C.border}`:"none",padding:"12px 16px",fontSize:14,color:C.text,fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif",cursor:"pointer",textAlign:"right",transition:"background 0.1s",display:"flex",alignItems:"center",gap:8}}
                         onMouseEnter={e=>e.currentTarget.style.background=C.border}
                         onMouseLeave={e=>e.currentTarget.style.background="none"}>
