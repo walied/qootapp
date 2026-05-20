@@ -39,16 +39,85 @@ export function AppProvider({ children }) {
   const [userProfile, setUserProfile] = useState(null);
   const [viewedUserId, setViewedUserId] = useState(null);
 
-  // ═══════════════ localStorage ═══════════════
+  // ═══════════════ localStorage anonymous UID (fallback) ═══════════════
   useEffect(() => {
     let storedUid = localStorage.getItem("qoot_uid");
     if (!storedUid) {
       storedUid = "user_" + Math.random().toString(36).substring(2, 15);
       localStorage.setItem("qoot_uid", storedUid);
     }
-    setUid(storedUid);
+    // Only set if we still don't have a real UID (i.e. not logged in)
+    if (!uid) setUid(storedUid);
   }, []);
 
+  // ═══════════════ Supabase Auth – restore session + listen for changes ═══════════════
+  useEffect(() => {
+    // Check for existing session on load
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUid(session.user.id);
+        localStorage.setItem("qoot_uid", session.user.id);
+        supabase
+          .from("users")
+          .select("*")
+          .eq("id", session.user.id)
+          .single()
+          .then(({ data }) => {
+            if (data) setUserProfile(data);
+            else {
+              // Create user record if not exists
+              const newUser = {
+                id: session.user.id,
+                name: session.user.user_metadata?.name || session.user.email?.split("@")[0],
+                xp: 0,
+                level: 1,
+                streak: 0,
+                badges: [],
+                paid: false,
+              };
+              supabase.from("users").upsert(newUser).then(() => setUserProfile(newUser));
+            }
+          });
+      }
+    });
+
+    // Listen for future auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        setUid(session.user.id);
+        localStorage.setItem("qoot_uid", session.user.id);
+        supabase
+          .from("users")
+          .select("*")
+          .eq("id", session.user.id)
+          .single()
+          .then(({ data }) => {
+            if (data) setUserProfile(data);
+            else {
+              const newUser = {
+                id: session.user.id,
+                name: session.user.user_metadata?.name || session.user.email?.split("@")[0],
+                xp: 0,
+                level: 1,
+                streak: 0,
+                badges: [],
+                paid: false,
+              };
+              supabase.from("users").upsert(newUser).then(() => setUserProfile(newUser));
+            }
+          });
+      } else {
+        // Signed out
+        setUid(null);
+        setUserProfile(null);
+        localStorage.removeItem("qoot_uid");
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // ═══════════════ Load saved plan from localStorage ═══════════════
   useEffect(() => {
     const savedPlan = localStorage.getItem("qoot_plan");
     const savedAnswers = localStorage.getItem("qoot_answers");
