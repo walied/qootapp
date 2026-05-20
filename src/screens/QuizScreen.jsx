@@ -102,15 +102,39 @@ export default function QuizScreen() {
             </div>
           )}
 
-          {/* Choices */}
+          {/* Choices – FIXED mouse click */}
           {["choice","multichoice","multichoice_notes"].includes(q.type)&&(
             <div>
               <div style={{display:"grid",gridTemplateColumns:q.options?.length>4?"1fr 1fr":"1fr",gap:8,marginBottom:8}}>
                 {(typeof q.options === 'object' && !Array.isArray(q.options) ? q.options[lang] : q.options)?.map(opt=>{
                   const active=selected.includes(opt);
                   return(
-                    <button key={opt} onClick={()=>toggle(opt)}
-                      style={{background:active?C.tealGlow:C.cardLight,border:`2px solid ${active?C.teal:C.border}`,borderRadius:12,padding:"12px 14px",fontSize:14,color:active?C.teal:C.text,fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif",cursor:"pointer",textAlign:"right",transition:"all 0.15s",fontWeight:active?600:400,display:"flex",alignItems:"center",gap:8}}>
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        toggle(opt);
+                      }}
+                      style={{
+                        background:active?C.tealGlow:C.cardLight,
+                        border:`2px solid ${active?C.teal:C.border}`,
+                        borderRadius:12,
+                        padding:"12px 14px",
+                        fontSize:14,
+                        color:active?C.teal:C.text,
+                        fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif",
+                        cursor:"pointer",
+                        textAlign:"right",
+                        transition:"all 0.15s",
+                        fontWeight:active?600:400,
+                        display:"flex",
+                        alignItems:"center",
+                        gap:8,
+                        width:"100%",
+                        userSelect:"none"
+                      }}>
                       <span style={{width:18,height:18,borderRadius:5,border:`2px solid ${active?C.teal:C.border}`,background:active?C.teal:"none",display:"inline-flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all 0.15s"}}>
                         {active&&<span style={{color:"#fff",fontSize:10,fontWeight:700}}>✓</span>}
                       </span>
@@ -176,7 +200,7 @@ export default function QuizScreen() {
             </div>
           )}
 
-          {/* Country search – FIXED */}
+          {/* Country search */}
           {q.type==="country_search"&&(
             <div>
               <div style={{position:"relative",marginBottom:10}}>
@@ -190,10 +214,10 @@ export default function QuizScreen() {
                 <div style={{background:`${C.green}12`,border:`2px solid ${C.green}44`,borderRadius:12,padding:"12px 14px",marginBottom:10,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                   <div style={{display:"flex",alignItems:"center",gap:8}}>
                     <span>✅</span>
-                    <span style={{fontSize:15,fontWeight:600,color:C.green,display:"flex",alignItems:"center",gap:8}}>
-  <img src={countrySelected.flag} alt={countrySelected.nameEn} style={{ width: 24, height: 18 }} />
-  {lang === "ar" ? countrySelected.nameAr : countrySelected.nameEn}
-</span>
+                    <span style={{fontSize:15,fontWeight:600,color:C.green}}>
+                      <img src={countrySelected.flag} alt="" style={{width:24,height:18,verticalAlign:"middle",marginRight:6}} />
+                      {lang === "ar" ? countrySelected.nameAr : countrySelected.nameEn}
+                    </span>
                   </div>
                   <button onClick={()=>{setCountrySelected("");setCountrySearch("");}} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:16}}>✕</button>
                 </div>
@@ -207,7 +231,7 @@ export default function QuizScreen() {
                         style={{width:"100%",background:"none",border:"none",borderBottom:i<r.length-1?`1px solid ${C.border}`:"none",padding:"12px 16px",fontSize:14,color:C.text,fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif",cursor:"pointer",textAlign:"right",transition:"background 0.1s",display:"flex",alignItems:"center",gap:8}}
                         onMouseEnter={e=>e.currentTarget.style.background=C.border}
                         onMouseLeave={e=>e.currentTarget.style.background="none"}>
-<img src={c.flag} alt={c.nameEn} style={{ width: 24, height: 18, flexShrink: 0 }} />               
+                        <img src={c.flag} alt="" style={{width:24,height:18,flexShrink:0}} />
                         <span>{lang === "ar" ? c.nameAr : c.nameEn}</span>
                       </button>
                     ))}
