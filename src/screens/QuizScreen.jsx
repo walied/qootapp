@@ -101,37 +101,48 @@ export default function QuizScreen() {
             </div>
           )}
 
-          {/* SINGLE CHOICE (gender) – uses reliable <select> */}
+          {/* ========== SINGLE CHOICE (الجنس) – أزرار مباشرة ========== */}
           {q.type === "choice" && (
             <div>
-              <select
-                value={selected[0] || ""}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  if (val) setSelected([val]);
-                }}
-                style={{
-                  width: "100%",
-                  background: C.cardLight,
-                  border: `2px solid ${C.border}`,
-                  borderRadius: 12,
-                  padding: "12px 14px",
-                  fontSize: 14,
-                  color: C.text,
-                  fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif",
-                  outline: "none",
-                  cursor: "pointer"
-                }}
-              >
-                <option value="">{lang === "ar" ? "اختر..." : "Select..."}</option>
-                {(typeof q.options === 'object' && !Array.isArray(q.options) ? q.options[lang] : q.options).map(opt => (
-                  <option key={opt} value={opt}>{opt}</option>
-                ))}
-              </select>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
+                {(typeof q.options === 'object' && !Array.isArray(q.options) ? q.options[lang] : q.options)?.map(opt=>{
+                  const active = selected.includes(opt);
+                  return(
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => toggle(opt)}
+                      onMouseDown={(e) => e.preventDefault()}
+                      style={{
+                        background:active?C.tealGlow:C.cardLight,
+                        border:`2px solid ${active?C.teal:C.border}`,
+                        borderRadius:12,
+                        padding:"12px 14px",
+                        fontSize:14,
+                        color:active?C.teal:C.text,
+                        fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif",
+                        cursor:"pointer",
+                        textAlign:"right",
+                        transition:"all 0.15s",
+                        fontWeight:active?600:400,
+                        display:"flex",
+                        alignItems:"center",
+                        gap:8,
+                        width:"100%",
+                        userSelect:"none"
+                      }}>
+                      <span style={{width:18,height:18,borderRadius:5,border:`2px solid ${active?C.teal:C.border}`,background:active?C.teal:"none",display:"inline-flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all 0.15s"}}>
+                        {active&&<span style={{color:"#fff",fontSize:10,fontWeight:700}}>✓</span>}
+                      </span>
+                      {opt}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           )}
 
-          {/* MULTI CHOICE (diseases, preferences) – buttons with guaranteed click */}
+          {/* ========== MULTI CHOICE – أزرار (لم تتغير) ========== */}
           {q.type !== "choice" && ["multichoice","multichoice_notes"].includes(q.type) && (
             <div>
               <div style={{display:"grid",gridTemplateColumns:q.options?.length>4?"1fr 1fr":"1fr",gap:8,marginBottom:8}}>
@@ -226,7 +237,7 @@ export default function QuizScreen() {
             </div>
           )}
 
-          {/* Country search – buttons for instant click */}
+          {/* Country search – بقيت كما هي (بدون تغيير) */}
           {q.type==="country_search"&&(
             <div>
               <div style={{position:"relative",marginBottom:10}}>
