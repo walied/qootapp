@@ -1,3 +1,4 @@
+import { supabase } from "../lib/supabaseClient";
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { searchCountry, useDebounce } from "../utils";
 import { T } from "../constants";
