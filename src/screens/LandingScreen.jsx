@@ -20,6 +20,14 @@ export default function LandingScreen() {
             style={{ background: "transparent", border: "none", color: C.muted, fontSize: 12, cursor: "pointer", fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif" }}>
             {T.landing.staff[lang]}
           </button>
+          <button onClick={() => setScreen("auth")}
+            style={{
+              background: C.teal, border: "none", color: "#fff", borderRadius: 8,
+              padding: "6px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer",
+              fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif"
+            }}>
+            {lang === "ar" ? "تسجيل الدخول" : "Sign In"}
+          </button>
           <span style={{ fontSize: 12, color: C.muted, background: C.cardLight, border: `1px solid ${C.border}`, borderRadius: 20, padding: "4px 12px" }}>
             {T.landing.aiPowered[lang]}
           </span>
