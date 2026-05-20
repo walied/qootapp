@@ -101,8 +101,8 @@ export default function QuizScreen() {
             </div>
           )}
 
-          {/* SINGLE CHOICE (جنس) – استخدام <select> مضمون */}
-          {q.type === "choice" && q.options && (
+          {/* SINGLE CHOICE (gender) – uses reliable <select> */}
+          {q.type === "choice" && (
             <div>
               <select
                 value={selected[0] || ""}
@@ -131,7 +131,7 @@ export default function QuizScreen() {
             </div>
           )}
 
-          {/* MULTI CHOICE (أمراض، تفضيلات) – أزرار عادية */}
+          {/* MULTI CHOICE (diseases, preferences) – buttons with guaranteed click */}
           {q.type !== "choice" && ["multichoice","multichoice_notes"].includes(q.type) && (
             <div>
               <div style={{display:"grid",gridTemplateColumns:q.options?.length>4?"1fr 1fr":"1fr",gap:8,marginBottom:8}}>
@@ -142,6 +142,7 @@ export default function QuizScreen() {
                       key={opt}
                       type="button"
                       onClick={() => toggle(opt)}
+                      onMouseDown={(e) => e.preventDefault()}
                       style={{
                         background:active?C.tealGlow:C.cardLight,
                         border:`2px solid ${active?C.teal:C.border}`,
@@ -225,7 +226,7 @@ export default function QuizScreen() {
             </div>
           )}
 
-          {/* Country search – مع قائمة تعمل بالماوس */}
+          {/* Country search – buttons for instant click */}
           {q.type==="country_search"&&(
             <div>
               <div style={{position:"relative",marginBottom:10}}>
@@ -252,16 +253,17 @@ export default function QuizScreen() {
                 return r.length>0?(
                   <div style={{background:C.cardLight,border:`1px solid ${C.border}`,borderRadius:12,overflow:"hidden",maxHeight:220,overflowY:"auto"}}>
                     {r.map((c,i)=>(
-                      <div
+                      <button
                         key={c.nameAr}
+                        type="button"
                         onClick={()=>{setCountrySelected(c);setCountrySearch("");}}
                         onMouseDown={(e) => e.preventDefault()}
                         style={{width:"100%",background:"none",border:"none",borderBottom:i<r.length-1?`1px solid ${C.border}`:"none",padding:"12px 16px",fontSize:14,color:C.text,fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif",cursor:"pointer",textAlign:"right",transition:"background 0.1s",display:"flex",alignItems:"center",gap:8}}
-                        role="button"
-                        tabIndex={0}>
+                        onMouseEnter={e=>e.currentTarget.style.background=C.border}
+                        onMouseLeave={e=>e.currentTarget.style.background="none"}>
                         <img src={c.flag} alt="" style={{width:24,height:18,flexShrink:0}} />
                         <span>{lang === "ar" ? c.nameAr : c.nameEn}</span>
-                      </div>
+                      </button>
                     ))}
                   </div>
                 ):<div style={{background:C.cardLight,border:`1px solid ${C.border}`,borderRadius:12,padding:"14px",textAlign:"center",color:C.muted,fontSize:14}}>{T.quiz.noResults[lang]}</div>;
