@@ -54,11 +54,32 @@ export default function PlanScreen() {
 
   return (
     <div style={{ minHeight: "100vh", background: C.bg, fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif", direction: lang === "ar" ? "rtl" : "ltr" }}>
-      {/* HEADER with Sign Out button */}
-      <div style={{ padding: "16px 20px", borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", gap: 10 }}>
+      {/* HEADER with Back button + Sign Out + Language */}
+      <div style={{ padding: "16px 20px", borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <img src="https://i.imgur.com/QMj8XdO.jpeg" alt="Qoot Logo" style={{ height: 40 }} />
         </div>
+
+        {/* BACK BUTTON */}
+        <button
+          onClick={() => setScreen("dashboard")}
+          style={{
+            background: C.cardLight,
+            border: `1px solid ${C.border}`,
+            color: C.text,
+            borderRadius: 8,
+            padding: "6px 12px",
+            fontSize: 13,
+            cursor: "pointer",
+            fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 4
+          }}
+        >
+          ← {lang === "ar" ? "لوحة التحكم" : "Dashboard"}
+        </button>
+
         <div style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>
           <SignOutButton />
           <button onClick={() => setLang(lang === "ar" ? "en" : "ar")}
