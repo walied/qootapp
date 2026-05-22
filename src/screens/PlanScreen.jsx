@@ -25,7 +25,7 @@ export default function PlanScreen() {
     receiptNumber, setReceiptNumber,
     role, setRole,
     followUp, setFollowUp, followStep, setFollowStep, followApproved, setFollowApproved,
-    bmiInfo
+    bmiInfo, setAnswers, setCurrentQ, setPlan, setWeekNum
   } = useApp();
 
   if (!plan) {
@@ -218,27 +218,42 @@ export default function PlanScreen() {
               <div style={{ fontSize: 12, color: C.muted, marginBottom: 12 }}>{T.plan.receipt[lang]}: {receiptNumber}</div>
             </div>
           ) : (
-            <button onClick={() => {
-              setIsSimulatingPayment(true);
-              // Open PayPal window
-              window.open(PAY.link(weekNum, fullName(answers)));
-              // Simulate payment processing, then go to OTP screen instead of directly unlocking
-              setTimeout(() => {
-  setPaid(true);
-  localStorage.setItem("qoot_paid", "true");
-  setIsSimulatingPayment(false);
-  setIsSendingWhatsApp(false); // or handle as you like
-}, 2500);
-                setIsSimulatingPayment(false);
-                setIsSendingWhatsApp(true);
+            <button
+              onClick={() => {
+                setIsSimulatingPayment(true);
+                window.open(PAY.link(weekNum, fullName(answers)));
                 setTimeout(() => {
-                  setIsSendingWhatsApp(false);
-                  setWhatsappSent(true);
-                  // Removed automatic setPaid here – will be done after OTP verification
+                  setPaid(true);
+                  localStorage.setItem("qoot_paid", "true");
+                  setIsSimulatingPayment(false);
+                  setIsSendingWhatsApp(true);
+                  setTimeout(() => {
+                    setIsSendingWhatsApp(false);
+                    setWhatsappSent(true);
+                  }, 2000);
                 }, 2500);
-              }, 2500);
-            }} disabled={isSimulatingPayment}
-              style={{ width: "100%", background: `linear-gradient(135deg,#003087,#009cde)`, color: "#fff", border: "none", borderRadius: 12, padding: "16px", fontSize: 16, fontWeight: 700, cursor: isSimulatingPayment ? "wait" : "pointer", fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 10, boxShadow: "0 6px 20px #009cde44", opacity: isSimulatingPayment ? 0.7 : 1 }}>
+              }}
+              disabled={isSimulatingPayment}
+              style={{
+                width: "100%",
+                background: `linear-gradient(135deg,#003087,#009cde)`,
+                color: "#fff",
+                border: "none",
+                borderRadius: 12,
+                padding: "16px",
+                fontSize: 16,
+                fontWeight: 700,
+                cursor: isSimulatingPayment ? "wait" : "pointer",
+                fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 10,
+                marginBottom: 10,
+                boxShadow: "0 6px 20px #009cde44",
+                opacity: isSimulatingPayment ? 0.7 : 1
+              }}
+            >
               <span style={{ fontSize: 20 }}>🅿️</span>
               <span>{isSimulatingPayment ? T.plan.paying[lang] : `${T.plan.payBtn[lang]} — $${PAY.weekPrice}`}</span>
             </button>
