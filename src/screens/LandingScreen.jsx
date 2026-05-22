@@ -1,17 +1,31 @@
+// src/screens/LandingScreen.jsx
 import { useApp } from "../context/AppContext";
 import { C, T } from "../constants";
 
 export default function LandingScreen() {
-  const { lang, setLang, setScreen } = useApp();
+  const { lang, setLang, setScreen, role } = useApp(); // ✅ add role
 
   return (
     <div style={{ minHeight: "100vh", background: C.bg, fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif", direction: lang === "ar" ? "rtl" : "ltr", overflowX: "hidden" }}>
-      {/* Header */}
-      <div style={{ padding: "18px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: `1px solid ${C.border}` }}>
+      {/* Header with role indicator */}
+      <div style={{ padding: "18px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: `1px solid ${C.border}`, flexWrap: "wrap", gap: 10 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <img src="https://i.imgur.com/QMj8XdO.jpeg" alt="Qoot Logo" style={{ height: 40 }} />
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+          {/* Role indicator */}
+          {role !== "customer" && (
+            <span style={{
+              background: role === "admin" ? C.purple : C.teal,
+              color: "#fff",
+              borderRadius: 20,
+              padding: "4px 12px",
+              fontSize: 12,
+              fontWeight: 600
+            }}>
+              {role === "admin" ? (lang === "ar" ? "مدير" : "Admin") : (lang === "ar" ? "متخصص" : "Specialist")}
+            </span>
+          )}
           <button onClick={() => setLang(lang === "ar" ? "en" : "ar")}
             style={{ background: C.cardLight, border: `1px solid ${C.border}`, color: C.text, borderRadius: 8, padding: "6px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif" }}>
             {lang === "ar" ? "English" : "العربية"}
