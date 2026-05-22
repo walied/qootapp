@@ -39,36 +39,43 @@ export function AppProvider({ children }) {
   const [userProfile, setUserProfile] = useState(null);
   const [viewedUserId, setViewedUserId] = useState(null);
 
-  // ═══════════════ localStorage anonymous UID (fallback) ═══════════════
-  useEffect(() => {
-    let storedUid = localStorage.getItem("qoot_uid");
-    if (!storedUid) {
-      storedUid = "user_" + Math.random().toString(36).substring(2, 15);
-      localStorage.setItem("qoot_uid", storedUid);
+  // ========== Google Sign-In ==========
+  const signInWithGoogle = async () => {
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin,
+        },
+      });
+      if (error) throw error;
+      return { data, error: null };
+    } catch (err) {
+      return { data: null, error: err.message };
     }
-    // Only set if we still don't have a real UID (i.e. not logged in)
-    if (!uid) setUid(storedUid);
-  }, []);
+  };
 
-  // ═══════════════ Supabase Auth – restore session + listen for changes ═══════════════
+  // ========== Supabase Auth – restore session + listen for changes ==========
   useEffect(() => {
-    // Check for existing session on load
+    // Check existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         setUid(session.user.id);
         localStorage.setItem("qoot_uid", session.user.id);
+        // Get or create user profile
         supabase
           .from("users")
           .select("*")
           .eq("id", session.user.id)
           .single()
           .then(({ data }) => {
-            if (data) setUserProfile(data);
-            else {
-              // Create user record if not exists
+            if (data) {
+              setUserProfile(data);
+            } else {
               const newUser = {
                 id: session.user.id,
                 name: session.user.user_metadata?.name || session.user.email?.split("@")[0],
+                email: session.user.email,
                 xp: 0,
                 level: 1,
                 streak: 0,
@@ -78,10 +85,14 @@ export function AppProvider({ children }) {
               supabase.from("users").upsert(newUser).then(() => setUserProfile(newUser));
             }
           });
+        // If user is authenticated and on landing/auth, move to quiz
+        if (screen === "landing" || screen === "auth") {
+          setScreen("quiz");
+        }
       }
     });
 
-    // Listen for future auth state changes
+    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
         setUid(session.user.id);
@@ -92,11 +103,13 @@ export function AppProvider({ children }) {
           .eq("id", session.user.id)
           .single()
           .then(({ data }) => {
-            if (data) setUserProfile(data);
-            else {
+            if (data) {
+              setUserProfile(data);
+            } else {
               const newUser = {
                 id: session.user.id,
                 name: session.user.user_metadata?.name || session.user.email?.split("@")[0],
+                email: session.user.email,
                 xp: 0,
                 level: 1,
                 streak: 0,
@@ -106,8 +119,10 @@ export function AppProvider({ children }) {
               supabase.from("users").upsert(newUser).then(() => setUserProfile(newUser));
             }
           });
+        if (screen === "landing" || screen === "auth") {
+          setScreen("quiz");
+        }
       } else {
-        // Signed out
         setUid(null);
         setUserProfile(null);
         localStorage.removeItem("qoot_uid");
@@ -115,9 +130,9 @@ export function AppProvider({ children }) {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [screen]);
 
-  // ═══════════════ Load saved plan from localStorage ═══════════════
+  // ========== Load saved plan from localStorage ==========
   useEffect(() => {
     const savedPlan = localStorage.getItem("qoot_plan");
     const savedAnswers = localStorage.getItem("qoot_answers");
@@ -130,18 +145,18 @@ export function AppProvider({ children }) {
     }
   }, []);
 
-  // ═══════════════ RTL/LTR ═══════════════
+  // ========== RTL/LTR ==========
   useEffect(() => {
     document.body.className = lang === "ar" ? "rtl" : "ltr";
   }, [lang]);
 
-  // ═══════════════ Loading messages ═══════════════
+  // ========== Loading messages ==========
   const MSGS = [
     T.common.loading[lang], T.common.loading2[lang], T.common.loading3[lang],
     T.common.loading4[lang], T.common.loading5[lang], T.common.loading6[lang]
   ];
 
-  // ═══════════════ Derived data ═══════════════
+  // ========== Derived data ==========
   const QUESTIONS = T.questions;
   const q = QUESTIONS[currentQ];
 
@@ -172,13 +187,13 @@ export function AppProvider({ children }) {
     return true;
   }, [q, targetMode, customTarget, countrySelected, selected, inputVal]);
 
-  // ═══════════════ Reset fields ═══════════════
+  // ========== Reset fields ==========
   const resetFields = useCallback(() => {
     setInputVal(""); setSelected([]); setTargetMode(""); setCustomTarget("");
     setCountrySearch(""); setCountrySelected(""); setHealthNotes("");
   }, []);
 
-  // ═══════════════ Toggle selection ═══════════════
+  // ========== Toggle selection ==========
   const toggle = useCallback((opt) => {
     const qType = QUESTIONS[currentQ]?.type;
     if (!qType) return;
@@ -191,7 +206,7 @@ export function AppProvider({ children }) {
     });
   }, [currentQ, lang]);
 
-  // ═══════════════ Helper ═══════════════
+  // ========== Helper ==========
   const inp = (extra = {}) => ({
     width: "100%", background: "#1E293B", border: `2px solid #334155`, borderRadius: 12,
     padding: "15px 18px", fontSize: 16, color: "#F8FAFC",
@@ -232,7 +247,7 @@ export function AppProvider({ children }) {
     uid, setUid,
     userProfile, setUserProfile,
     viewedUserId, setViewedUserId,
-    // Derived
+    signInWithGoogle, // <-- expose Google sign-in function
     MSGS, QUESTIONS, q,
     debouncedSearch, countryResults,
     hw, bmiInfo, canNext,
