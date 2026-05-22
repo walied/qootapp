@@ -36,23 +36,33 @@ export default function FollowUpScreen() {
     const upd = { ...followUp, [fq.id]: val };
     setFollowUp(upd);
     if (followStep < T.followup.questions.length - 1) { setFollowStep(followStep + 1); return; }
+    
     setScreen("generating");
     let i = 0; setLoadMsg(MSGS[0]);
     const iv = setInterval(() => { i = (i + 1) % MSGS.length; setLoadMsg(MSGS[i]); }, 1800);
+    
     try {
-      const apiKey = import.meta.env.VITE_DEEPSEEK_KEY || "";
-      const res = await fetch("https://api.deepseek.com/chat/completions", {
+      // ✅ Call your secure backend endpoint instead of DeepSeek directly
+      const res = await fetch("/api/followup", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
-        body: JSON.stringify({
-          model: "deepseek-chat",
-          messages: [{ role: "system", content: lang === "ar" ? "أنت أخصائي تغذية..." : "You are a nutrition specialist..." }, { role: "user", content: `${lang === "ar" ? "نتائج الأسبوع" : "Week results"}: ${JSON.stringify(upd)}` }]
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          followUpData: upd, 
+          lang, 
+          oldPlan: plan,   // if you need to pass the previous plan
+          answers 
         })
       });
-      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+      
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `HTTP error! status: ${res.status}`);
+      }
+      
       const data = await res.json();
-      if (data.error) throw new Error(data.error.code === 429 ? "rate_limit" : JSON.stringify(data.error));
-      const newPlan = safeParseJSON(data.choices[0].message.content);
+      const newPlan = safeParseJSON(data.plan);
+      
+      // Update answers with new weight
       setAnswers(p => ({ ...p, current_weight: upd.new_weight }));
       setPlan(newPlan);
       setWeekNum(w => w + 1);
