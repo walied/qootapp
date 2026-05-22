@@ -183,6 +183,14 @@ export const T = {
   },
   questions: [
     { id: "first_name", type: "text", label: { ar: "اسمك الأول؟", en: "Your first name?" }, placeholder: { ar: "أدخل اسمك", en: "Enter your name" }, icon: "👤", required: true },
+   {
+  id: "email",
+  type: "email",
+  required: true,
+  label: { ar: "البريد الإلكتروني", en: "Email address" },
+  placeholder: { ar: "example@domain.com", en: "example@domain.com" },
+  icon: "📧",
+}, 
     { id: "phone", type: "tel", label: { ar: "رقم هاتفك (اختياري)", en: "Phone number (optional)" }, placeholder: { ar: "مثال: 0096599001234", en: "Example: 0096599001234" }, icon: "📱", required: false, hint: { ar: "لن نزعجك، فقط للمتابعة الأسبوعية", en: "We'll only use it for weekly follow-up" } },
     { id: "age", type: "number", label: { ar: "كم عمرك؟", en: "How old are you?" }, placeholder: { ar: "مثال: 30", en: "Example: 30" }, unit: { ar: "سنة", en: "years" }, icon: "🎂", required: true },
     { id: "gender", type: "choice", label: { ar: "الجنس", en: "Gender" }, options: { ar: ["ذكر", "أنثى"], en: ["Male", "Female"] }, icon: "⚧", required: true },
