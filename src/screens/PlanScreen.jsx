@@ -224,7 +224,11 @@ export default function PlanScreen() {
               window.open(PAY.link(weekNum, fullName(answers)));
               // Simulate payment processing, then go to OTP screen instead of directly unlocking
               setTimeout(() => {
-                setScreen("otp");  // ✅ Navigate to OTP verification
+  setPaid(true);
+  localStorage.setItem("qoot_paid", "true");
+  setIsSimulatingPayment(false);
+  setIsSendingWhatsApp(false); // or handle as you like
+}, 2500);
                 setIsSimulatingPayment(false);
                 setIsSendingWhatsApp(true);
                 setTimeout(() => {
