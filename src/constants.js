@@ -183,14 +183,7 @@ export const T = {
   },
   questions: [
     { id: "first_name", type: "text", label: { ar: "اسمك الأول؟", en: "Your first name?" }, placeholder: { ar: "أدخل اسمك", en: "Enter your name" }, icon: "👤", required: true },
-   {
-  id: "email",
-  type: "email",
-  required: true,
-  label: { ar: "البريد الإلكتروني", en: "Email address" },
-  placeholder: { ar: "example@domain.com", en: "example@domain.com" },
-  icon: "📧",
-}, 
+    { id: "email", type: "email", required: true, label: { ar: "البريد الإلكتروني", en: "Email address" }, placeholder: { ar: "example@domain.com", en: "example@domain.com" }, icon: "📧" },
     { id: "phone", type: "tel", label: { ar: "رقم هاتفك (اختياري)", en: "Phone number (optional)" }, placeholder: { ar: "مثال: 0096599001234", en: "Example: 0096599001234" }, icon: "📱", required: false, hint: { ar: "لن نزعجك، فقط للمتابعة الأسبوعية", en: "We'll only use it for weekly follow-up" } },
     { id: "age", type: "number", label: { ar: "كم عمرك؟", en: "How old are you?" }, placeholder: { ar: "مثال: 30", en: "Example: 30" }, unit: { ar: "سنة", en: "years" }, icon: "🎂", required: true },
     { id: "gender", type: "choice", label: { ar: "الجنس", en: "Gender" }, options: { ar: ["ذكر", "أنثى"], en: ["Male", "Female"] }, icon: "⚧", required: true },
@@ -224,6 +217,52 @@ export const T = {
       options: { ar: ["آكل كل شيء", "نباتي", "دجاج وسمك فقط", "لحوم حمراء", "لا أحب الخضروات"], en: ["Eat everything", "Vegetarian", "Chicken & Fish only", "Red meat", "Don't like vegetables"] },
       icon: "🥗"
     },
+    // ========== 5 NEW OPTIONAL HEALTH QUESTIONS ==========
+    {
+      id: "sleep_hours",
+      type: "number",
+      label: { ar: "كم ساعة تنام في الليلة؟ (اختياري)", en: "How many hours do you sleep per night? (optional)" },
+      placeholder: { ar: "مثال: 7", en: "Example: 7" },
+      unit: { ar: "ساعات", en: "hours" },
+      icon: "😴",
+      required: false,
+      hint: { ar: "النوم الجيد يساعد في التحكم بالشهية", en: "Good sleep helps control appetite" }
+    },
+    {
+      id: "smoking",
+      type: "choice",
+      label: { ar: "هل تدخن أو تستخدم الفيب؟ (اختياري)", en: "Do you smoke or vape? (optional)" },
+      options: { ar: ["لا", "نعم - سجائر", "نعم - فيب", "نعم - شيشة"], en: ["No", "Yes - cigarettes", "Yes - vape", "Yes - hookah"] },
+      icon: "🚬",
+      required: false
+    },
+    {
+      id: "stress_level",
+      type: "choice",
+      label: { ar: "مستوى التوتر اليومي (اختياري)", en: "Daily stress level (optional)" },
+      options: { ar: ["منخفض (1-3)", "متوسط (4-6)", "مرتفع (7-8)", "شديد جداً (9-10)"], en: ["Low (1-3)", "Moderate (4-6)", "High (7-8)", "Very high (9-10)"] },
+      icon: "😰",
+      required: false,
+      hint: { ar: "التوتر يؤثر على الرغبة في تناول السكريات", en: "Stress affects sugar cravings" }
+    },
+    {
+      id: "cooking_time",
+      type: "choice",
+      label: { ar: "الوقت المتاح لك للطهي يومياً (اختياري)", en: "Time available for cooking daily (optional)" },
+      options: { ar: ["أقل من 15 دقيقة", "15-30 دقيقة", "30-60 دقيقة", "أكثر من ساعة"], en: ["Less than 15 min", "15-30 min", "30-60 min", "More than 1 hour"] },
+      icon: "⏲️",
+      required: false
+    },
+    {
+      id: "previous_surgeries",
+      type: "textarea",
+      label: { ar: "هل خضعت لعمليات جراحية سابقة (خاصة المعدة أو الأمعاء)؟ (اختياري)", en: "Have you had any previous surgeries (especially stomach or intestines)? (optional)" },
+      placeholder: { ar: "اذكر العملية وتاريخها إن أمكن...", en: "Mention the surgery and date if possible..." },
+      icon: "🏥",
+      required: false,
+      hint: { ar: "بعض العمليات تؤثر على امتصاص الغذاء", en: "Some surgeries affect nutrient absorption" }
+    },
+    // End of new questions
     { id: "country", type: "country_search", label: { ar: "دولة إقامتك", en: "Your country" }, placeholder: { ar: "ابحث عن دولتك...", en: "Search your country..." }, icon: "🌍", required: true },
   ],
   common: {
@@ -236,7 +275,7 @@ export const T = {
   }
 };
 
-// New unified country list – one Arabic name, one English name, one flag
+// Full countries list (Palestine included, Israel excluded)
 export const COUNTRIES = [
   // Africa
   { nameAr: "مصر", nameEn: "Egypt", flag: "https://flagcdn.com/w40/eg.png" },
@@ -292,7 +331,7 @@ export const COUNTRIES = [
   { nameAr: "ساو تومي وبرينسيب", nameEn: "Sao Tome and Principe", flag: "https://flagcdn.com/w40/st.png" },
   { nameAr: "أنغولا", nameEn: "Angola", flag: "https://flagcdn.com/w40/ao.png" },
 
-  // Asia
+  // Asia (including Palestine, excluding Israel)
   { nameAr: "السعودية", nameEn: "Saudi Arabia", flag: "https://flagcdn.com/w40/sa.png" },
   { nameAr: "الكويت", nameEn: "Kuwait", flag: "https://flagcdn.com/w40/kw.png" },
   { nameAr: "الإمارات", nameEn: "United Arab Emirates", flag: "https://flagcdn.com/w40/ae.png" },
