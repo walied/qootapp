@@ -101,46 +101,80 @@ export default function QuizScreen() {
             </div>
           )}
 
-          {/* ========== SINGLE CHOICE (الجنس) – ضبط نهائي ========== */}
-          {q.type === "choice" && (
-            <div>
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
-                {(typeof q.options === 'object' && !Array.isArray(q.options) ? q.options[lang] : q.options)?.map(opt=>{
-                  const active = selected.includes(opt);
-                  return(
-                    <button
-                      key={opt}
-                      type="button"
-                      onClick={() => setSelected([opt])}
-                      style={{
-                        background:active?C.tealGlow:C.cardLight,
-                        border:`2px solid ${active?C.teal:C.border}`,
-                        borderRadius:12,
-                        padding:"12px 14px",
-                        fontSize:14,
-                        color:active?C.teal:C.text,
-                        fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif",
-                        cursor:"pointer",
-                        textAlign:"right",
-                        transition:"all 0.15s",
-                        fontWeight:active?600:400,
-                        display:"flex",
-                        alignItems:"center",
-                        gap:8,
-                        width:"100%",
-                        userSelect:"none"
-                      }}>
-                      <span style={{width:18,height:18,borderRadius:5,border:`2px solid ${active?C.teal:C.border}`,background:active?C.teal:"none",display:"inline-flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all 0.15s"}}>
-                        {active&&<span style={{color:"#fff",fontSize:10,fontWeight:700}}>✓</span>}
-                      </span>
-                      {opt}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
+          {/* ========== SINGLE CHOICE (with fast select for gender) ========== */}
+{q.type === "choice" && (
+  <div>
+    {q.id === "gender" ? (
+      // ✅ Fast native select for gender (fixes delay)
+      <select
+        value={selected[0] || ""}
+        onChange={(e) => setSelected([e.target.value])}
+        style={{
+          width: "100%",
+          background: C.cardLight,
+          border: `2px solid ${C.border}`,
+          borderRadius: 12,
+          padding: "14px 16px",
+          fontSize: 16,
+          color: C.text,
+          fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif",
+          cursor: "pointer",
+          outline: "none",
+          transition: "border 0.2s"
+        }}
+        onFocus={(e) => e.target.style.borderColor = C.teal}
+        onBlur={(e) => e.target.style.borderColor = C.border}
+      >
+        <option value="" disabled style={{ color: C.muted }}>
+          {lang === "ar" ? "اختر الجنس" : "Select gender"}
+        </option>
+        <option value={lang === "ar" ? "ذكر" : "Male"}>
+          {lang === "ar" ? "ذكر" : "Male"}
+        </option>
+        <option value={lang === "ar" ? "أنثى" : "Female"}>
+          {lang === "ar" ? "أنثى" : "Female"}
+        </option>
+      </select>
+    ) : (
+      // Original button grid for other choice questions (e.g., if any)
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
+        {(typeof q.options === 'object' && !Array.isArray(q.options) ? q.options[lang] : q.options)?.map(opt=>{
+          const active = selected.includes(opt);
+          return(
+            <button
+              key={opt}
+              type="button"
+              onClick={() => setSelected([opt])}
+              style={{
+                background:active?C.tealGlow:C.cardLight,
+                border:`2px solid ${active?C.teal:C.border}`,
+                borderRadius:12,
+                padding:"12px 14px",
+                fontSize:14,
+                color:active?C.teal:C.text,
+                fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif",
+                cursor:"pointer",
+                textAlign:"right",
+                transition:"all 0.15s",
+                fontWeight:active?600:400,
+                display:"flex",
+                alignItems:"center",
+                gap:8,
+                width:"100%",
+                userSelect:"none"
+              }}>
+              <span style={{width:18,height:18,borderRadius:5,border:`2px solid ${active?C.teal:C.border}`,background:active?C.teal:"none",display:"inline-flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all 0.15s"}}>
+                {active&&<span style={{color:"#fff",fontSize:10,fontWeight:700}}>✓</span>}
+              </span>
+              {opt}
+            </button>
+          );
+        })}
+      </div>
+    )}
+  </div>
+)}
+          
           {/* ========== MULTI CHOICE – بدون تغيير ========== */}
           {q.type !== "choice" && ["multichoice","multichoice_notes"].includes(q.type) && (
             <div>
