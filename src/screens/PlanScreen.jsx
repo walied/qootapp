@@ -1,6 +1,8 @@
+// src/screens/PlanScreen.jsx
 import { useApp } from "../context/AppContext";
 import { C, T, COUNTRIES } from "../constants";
 import { fullName } from "../utils";
+import SignOutButton from "../components/SignOutButton";
 
 const PAY = {
   email: "abuhaa0@gmail.com",
@@ -39,28 +41,31 @@ export default function PlanScreen() {
     return null;
   })();
 
-  // دالة إرجاع علم الدولة من المصفوفة الجديدة COUNTRIES
   const getCountryFlag = (countryName) => {
-  if (!countryName) return "🌍";
-  const found = COUNTRIES.find(
-    c => c.nameAr === countryName || c.nameEn === countryName
-  );
-  if (found) {
-    return <img src={found.flag} alt={found.nameEn} style={{ width: 24, height: 18, verticalAlign: "middle" }} />;
-  }
-  return countryName + " ⚠️";
-};
+    if (!countryName) return "🌍";
+    const found = COUNTRIES.find(
+      c => c.nameAr === countryName || c.nameEn === countryName
+    );
+    if (found) {
+      return <img src={found.flag} alt={found.nameEn} style={{ width: 24, height: 18, verticalAlign: "middle" }} />;
+    }
+    return countryName + " ⚠️";
+  };
 
   return (
     <div style={{ minHeight: "100vh", background: C.bg, fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif", direction: lang === "ar" ? "rtl" : "ltr" }}>
+      {/* HEADER with Sign Out button */}
       <div style={{ padding: "16px 20px", borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", gap: 10 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <img src="https://i.imgur.com/QMj8XdO.jpeg" alt="Qoot Logo" style={{ height: 40 }} />
         </div>
-        <button onClick={() => setLang(lang === "ar" ? "en" : "ar")}
-          style={{ background: C.cardLight, border: `1px solid ${C.border}`, color: C.text, borderRadius: 8, padding: "4px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif", marginLeft: lang === "ar" ? "auto" : "0", marginRight: lang === "ar" ? "0" : "auto" }}>
-          {lang === "ar" ? "English" : "العربية"}
-        </button>
+        <div style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>
+          <SignOutButton />
+          <button onClick={() => setLang(lang === "ar" ? "en" : "ar")}
+            style={{ background: C.cardLight, border: `1px solid ${C.border}`, color: C.text, borderRadius: 8, padding: "4px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif" }}>
+            {lang === "ar" ? "English" : "العربية"}
+          </button>
+        </div>
         <span style={{ fontSize: 12, color: C.amber, background: C.amberGlow, border: `1px solid ${C.amber}33`, borderRadius: 20, padding: "3px 12px" }}>{T.plan.pending[lang]}</span>
       </div>
 
@@ -71,7 +76,7 @@ export default function PlanScreen() {
           <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8 }}>{plan.human_intro || plan.summary}</div>
         </div>
 
-        {/* Client info with FLAGS */}
+        {/* Client info with flags */}
         <div className="fu2" style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 20, padding: "20px 20px", marginBottom: 14 }}>
           <div style={{ fontSize: 14, fontWeight: 600, color: C.teal, marginBottom: 14 }}>{T.plan.your_info[lang]}</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12, fontSize: 13 }}>
@@ -215,19 +220,19 @@ export default function PlanScreen() {
           ) : (
             <button onClick={() => {
               setIsSimulatingPayment(true);
-              setReceiptNumber(Math.random().toString(36).substring(2, 10).toUpperCase());
+              // Open PayPal window
+              window.open(PAY.link(weekNum, fullName(answers)));
+              // Simulate payment processing, then go to OTP screen instead of directly unlocking
               setTimeout(() => {
-                setPaid(true);
-                localStorage.setItem("qoot_paid", "true");
+                setScreen("otp");  // ✅ Navigate to OTP verification
                 setIsSimulatingPayment(false);
                 setIsSendingWhatsApp(true);
                 setTimeout(() => {
                   setIsSendingWhatsApp(false);
                   setWhatsappSent(true);
-                  setTimeout(() => setScreen("dashboard"), 1500);
+                  // Removed automatic setPaid here – will be done after OTP verification
                 }, 2500);
               }, 2500);
-              window.open(PAY.link(weekNum, fullName(answers)));
             }} disabled={isSimulatingPayment}
               style={{ width: "100%", background: `linear-gradient(135deg,#003087,#009cde)`, color: "#fff", border: "none", borderRadius: 12, padding: "16px", fontSize: 16, fontWeight: 700, cursor: isSimulatingPayment ? "wait" : "pointer", fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 10, boxShadow: "0 6px 20px #009cde44", opacity: isSimulatingPayment ? 0.7 : 1 }}>
               <span style={{ fontSize: 20 }}>🅿️</span>
