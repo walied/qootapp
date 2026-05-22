@@ -87,7 +87,7 @@ export default function QuizScreen() {
           {q.hint&&!q.warn&&<div style={{background:C.tealGlow,border:`1px solid ${C.teal}33`,borderRadius:10,padding:"10px 14px",marginBottom:14,display:"flex",gap:8}}><span style={{flexShrink:0}}>💡</span><span style={{fontSize:13,color:C.teal,lineHeight:1.6}}>{typeof q.hint === 'object' ? q.hint[lang] : q.hint}</span></div>}
 
           {/* Text / Number / Phone */}
-          {["text","number","tel"].includes(q.type)&&(
+          {["text","number","tel","email"].includes(q.type) && (
             <div style={{position:"relative",marginBottom:4}}>
               <input ref={inputRef} type={q.type==="tel"?"tel":q.type} placeholder={typeof q.placeholder === 'object' ? q.placeholder[lang] : q.placeholder} value={inputVal}
                 onChange={e=>{ if (q.type === "tel") { setInputVal(e.target.value.replace(/[^\d\+\-\s]/g, '')); } else { setInputVal(e.target.value); } }} 
