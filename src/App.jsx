@@ -15,7 +15,6 @@ import CommunityScreen from "./screens/CommunityScreen";
 import ProfileScreen from "./screens/ProfileScreen";
 import AuthScreen from "./screens/AuthScreen";
 import LoginScreen from "./screens/LoginScreen";
-import OTPScreen from "./screens/OTPScreen";  // ✅ new OTP screen
 
 function AppContent() {
   const { screen } = useApp();
@@ -46,8 +45,6 @@ function AppContent() {
       return <CommunityScreen />;
     case "profile":
       return <ProfileScreen />;
-    case "otp":          // ✅ OTP verification screen
-      return <OTPScreen />;
     default:
       return <LandingScreen />;
   }
