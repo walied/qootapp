@@ -1,4 +1,4 @@
-// src/screens/PlanScreen.jsx
+// src/screens/PlanScreen.jsx (النسخة النهائية مع رسالة طويلة ووجبات متنوعة)
 import { useApp } from "../context/AppContext";
 import { C, T, COUNTRIES } from "../constants";
 import { fullName } from "../utils";
@@ -29,55 +29,92 @@ function renderTextWithLinks(text) {
   });
 }
 
-function getFullDemoPlan(lang, firstName, country) {
+// دالة توليد خطة تجريبية متنوعة (7 أيام مختلفة) مع أوقات تمرين مختلفة
+function getVariedDemoPlan(lang, firstName, country) {
   const days = lang === 'ar'
     ? ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت']
     : ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-  const macrosDemo = 'بروتين: 20-35g | كارب: 30-40g | دهون: 5-12g';
-  
-  // تعريف التمرين لكل يوم مع الوقت المفضل
-  const workoutByDay = {
+  // وجبات مختلفة لكل يوم (متنوعة)
+  const mealsByDay = {
     [lang === 'ar' ? 'الأحد' : 'Sunday']: {
-      text: 'تمرين خفيف: مشي سريع 20 دقيقة + تمارين إطالة',
-      timing: 'بعد وجبة الفطار'
+      breakfast: ['بيض مسلوق مع خبز أسمر', 'جبنة قريش مع خيار', 'شوفان مع حليب'],
+      lunch: ['دجاج مشوي مع أرز', 'سمك مشوي مع خضار', 'عدس مع أرز'],
+      dinner: ['زبادي مع خبز', 'جبنة مع طماطم', 'شوربة خضار'],
+      snack: ['تفاحة', 'موزة', 'حفنة فول سوداني']
     },
     [lang === 'ar' ? 'الإثنين' : 'Monday']: {
-      text: 'تمارين منزلية: ضغط (3×10)، قرفصاء (3×15)، بلانك (3×30 ثانية)',
-      timing: 'بعد وجبة الفطار'
+      breakfast: ['فول مدمس', 'بيض مقلي', 'كورن فليكس مع حليب'],
+      lunch: ['لحم مفروم مع مكرونة', 'دجاج بالخضار', 'بطاطس مسلوقة مع سلطة'],
+      dinner: ['تونة مع خبز', 'سلطة جبنة', 'لبن رايب'],
+      snack: ['برتقال', 'جوافة', 'خيار']
     },
     [lang === 'ar' ? 'الثلاثاء' : 'Tuesday']: {
-      text: 'كارديو: قفز بالحبل 15 دقيقة + تمارين بطن',
-      timing: 'بعد وجبة العشاء'
+      breakfast: ['شوفان مع فواكه', 'بيض أومليت', 'زبادي مع عسل'],
+      lunch: ['كفتة أرز', 'سمك مقلي مع بطاطس', 'محشي ورق عنب'],
+      dinner: ['جبنة حلوم مع خبز', 'حمص', 'فول مدمس'],
+      snack: ['تمر', 'تين', 'لبن']
     },
     [lang === 'ar' ? 'الأربعاء' : 'Wednesday']: {
-      text: 'يوغا أو تمدد عميق 20 دقيقة',
-      timing: 'في أي وقت مناسب'
+      breakfast: ['فول بالسمنة', 'بيض بندورة', 'خبز بالزعتر'],
+      lunch: ['دجاج محمر مع أرز', 'سمك بلطي مشوي', 'خضار سوتيه'],
+      dinner: ['سلطة يونانية', 'جبنة فيتا', 'زيتون'],
+      snack: ['تفاح', 'موز', 'لوز']
     },
     [lang === 'ar' ? 'الخميس' : 'Thursday']: {
-      text: 'تمارين مقاومة باستخدام زجاجات ماء (3×15)، رفع ساقين (3×20)',
-      timing: 'بعد وجبة الفطار'
+      breakfast: ['كريب شوفان', 'بيض بصلصة', 'فول بالطحينة'],
+      lunch: ['باستا بالدجاج', 'سمك في الفرن', 'عدس مجفف'],
+      dinner: ['شوربة عدس', 'خبز محمص', 'جبنة'],
+      snack: ['كمثرى', 'عنب', 'جوز']
     },
     [lang === 'ar' ? 'الجمعة' : 'Friday']: {
-      text: 'تمارين كارديو منزلية: قفز النجم، ركض في المكان (15 دقيقة)',
-      timing: 'بعد وجبة الفطار'
+      breakfast: ['عجة بالخضار', 'فول مدمس', 'لبنة وزيتون'],
+      lunch: ['دجاج بالفرن مع بطاطس', 'سمك مقلي', 'مكرونة بشاميل'],
+      dinner: ['بيتزا خضار', 'سلطة', 'زبادي'],
+      snack: ['فراولة', 'كيوي', 'فستق']
     },
     [lang === 'ar' ? 'السبت' : 'Saturday']: {
-      text: 'تمارين شاملة: ضغط، قرفصاء، بلانك، كارديو خفيف (20 دقيقة)',
-      timing: 'بعد وجبة العشاء'
+      breakfast: ['بيض مسلوق', 'فول بالزيت', 'شوفان مع مكسرات'],
+      lunch: ['أرز بالخضار', 'سمك مشوي', 'دجاج بالكاري'],
+      dinner: ['جبنة قريش', 'خيار', 'لبن'],
+      snack: ['مانجو', 'بطيخ', 'بندق']
     }
   };
 
+  // أوقات تمرين مختلفة لكل يوم (محاكاة لاختيار الذكاء الاصطناعي)
+  const exerciseTimeByDay = {
+    [lang === 'ar' ? 'الأحد' : 'Sunday']: 'بعد الفطار',
+    [lang === 'ar' ? 'الإثنين' : 'Monday']: 'بعد العشاء',
+    [lang === 'ar' ? 'الثلاثاء' : 'Tuesday']: 'بعد الفطار',
+    [lang === 'ar' ? 'الأربعاء' : 'Wednesday']: 'في أي وقت',
+    [lang === 'ar' ? 'الخميس' : 'Thursday']: 'بعد الغداء',
+    [lang === 'ar' ? 'الجمعة' : 'Friday']: 'بعد الفطار',
+    [lang === 'ar' ? 'السبت' : 'Saturday']: 'بعد العشاء'
+  };
+
+  const workoutByDay = {
+    [lang === 'ar' ? 'الأحد' : 'Sunday']: 'تمرين خفيف: مشي سريع 20 دقيقة + إطالة',
+    [lang === 'ar' ? 'الإثنين' : 'Monday']: 'تمارين منزلية: ضغط (3×10)، قرفصاء (3×15)، بلانك',
+    [lang === 'ar' ? 'الثلاثاء' : 'Tuesday']: 'كارديو: قفز بالحبل 15 دقيقة + تمارين بطن',
+    [lang === 'ar' ? 'الأربعاء' : 'Wednesday']: 'يوغا أو تمدد عميق 20 دقيقة',
+    [lang === 'ar' ? 'الخميس' : 'Thursday']: 'تمارين مقاومة باستخدام زجاجات ماء',
+    [lang === 'ar' ? 'الجمعة' : 'Friday']: 'تمارين كارديو منزلية: قفز النجم، ركض في المكان',
+    [lang === 'ar' ? 'السبت' : 'Saturday']: 'تمارين شاملة: ضغط، قرفصاء، بلانك، كارديو'
+  };
+
+  const macros = 'بروتين: 20-35g | كارب: 30-40g | دهون: 5-12g';
   const weeklyPlan = days.map(day => {
-    const w = workoutByDay[day];
-    const workoutText = w ? `${w.text} (${w.timing})` : 'راحة نشطة (مشي خفيف)';
+    const meals = mealsByDay[day];
+    const workout = workoutByDay[day];
+    const exerciseTime = exerciseTimeByDay[day];
     return {
       day: day,
-      breakfast: { options: ['بيض مسلوق مع خبز أسمر', 'شوفان مع حليب أو ماء', 'فول مدمس'], macros: macrosDemo },
-      lunch: { options: ['دجاج مشوي مع أرز عادي', 'سمك مشوي مع خضار موسمي', 'عدس مع أرز'], macros: macrosDemo },
-      dinner: { options: ['زبادي مع خيار و خبز', 'جبنة قريش مع طماطم', 'شوربة عدس'], macros: macrosDemo },
-      snack: { options: ['تفاحة', 'موزة', 'حفنة فول سوداني غير مملح'], macros: 'بروتين: 5g | كارب: 15g | دهون: 3g' },
-      workout: workoutText   // ✅ إضافة التمرين لكل يوم
+      breakfast: { options: meals.breakfast, macros: macros },
+      lunch: { options: meals.lunch, macros: macros },
+      dinner: { options: meals.dinner, macros: macros },
+      snack: { options: meals.snack, macros: macros.replace('20-35g', '5g').replace('30-40g', '15g').replace('5-12g', '3g') },
+      workout: workout,
+      exercise_time: exerciseTime
     };
   });
 
@@ -97,9 +134,34 @@ function getFullDemoPlan(lang, firstName, country) {
         '🍎 Eat whole fruits instead of juices.'
       ];
 
+  // ✅ الرسالة الترحيبية الطويلة كما كانت سابقاً
   const intro = lang === 'ar'
-    ? `مرحباً ${firstName || ''}، بعد تحليل دقيق لكل بياناتك، تم تصميم هذه الخطة خصيصاً لك. الهدف خسارة 5 كجم خلال 10 أسابيع. جميع الوجبات تعتمد على أرخص المكونات المحلية. متخصصنا يتابع معك أسبوعياً. أنت قادر على تحقيق هدفك. نحن هنا لك: https://wa.me/96598002104`
-    : `Hello ${firstName || ''}, after careful analysis, this plan is designed for you. Goal: lose 5 kg in 10 weeks. All meals use cheapest local ingredients. Your specialist follows up weekly. You can do it. We are here: https://wa.me/96598002104`;
+    ? `مرحباً ${firstName || ''}،
+
+بعد تحليل دقيق لكل بياناتك (عمرك، وزنك، طولك، حالتك الصحية، نشاطك، تفضيلاتك، وبلدك ${country || 'بلدك'})، قمنا بتصميم هذه الخطة خصيصاً من أجلك.
+
+الهدف هو خسارة 5 كجم خلال 10 أسابيع بمشيئة الله.
+
+جميع الوجبات في هذه الخطة تعتمد فقط على أرخص وأكثر المكونات توفراً في بلدك، ولن نطلب منك أبداً شراء مكونات مستوردة أو غالية (مثل الأرز البسمتي، الكينوا، الأفوكادو). نحن نعلم أن أرز بلدك المحلي هو الأرخص والأفضل.
+
+متخصصنا سيتابع معك شخصياً كل أسبوع، وسيطلب منك تحديث وزنك أسبوعياً حتى نعدل الخطة حسب تقدمك.
+
+أنت قادر على تحقيق هدفنا معاً، خطوة بخطوة. ثق بنفسك.
+
+نحن هنا من أجلك: https://wa.me/96598002104`
+    : `Hello ${firstName || ''},
+
+After carefully analyzing all your data (age, weight, height, health, activity, preferences, and your country ${country || 'your country'}), we have designed this plan specifically for you.
+
+The goal is to lose 5 kg in 10 weeks, God willing.
+
+All meals in this plan use only the cheapest, most available ingredients in your country, and we will never ask you to buy imported or expensive items (like basmati rice, quinoa, avocado). We know your local rice is the cheapest and best.
+
+A specialist will follow up personally every week and will ask for your weight update so we can adjust the plan according to your progress.
+
+You are capable of achieving our goal together, step by step. Trust yourself.
+
+We are here for you: https://wa.me/96598002104`;
 
   return {
     human_intro: intro,
@@ -108,7 +170,7 @@ function getFullDemoPlan(lang, firstName, country) {
     weight_to_lose: 5,
     expected_weeks: 10,
     weekly_plan: weeklyPlan,
-    home_workout: '',   // لم نعد نستخدم هذا البلوك المنفصل
+    home_workout: '', // لم نعد نستخدم بلوك منفصل
     tips: tips,
     specialist_notes: ''
   };
@@ -127,7 +189,8 @@ export default function PlanScreen() {
     bmiInfo, setAnswers, setCurrentQ, setPlan, setWeekNum
   } = useApp();
 
-  const plan = getFullDemoPlan(lang, answers.first_name, answers.country);
+  // استخدام الخطة التجريبية المتنوعة
+  const plan = getVariedDemoPlan(lang, answers.first_name, answers.country);
 
   const bmiCalc = bmiInfo || (() => {
     if (answers.height && answers.current_weight) {
@@ -146,7 +209,7 @@ export default function PlanScreen() {
 
   return (
     <div style={{ minHeight: "100vh", background: C.bg, fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif", direction: lang === "ar" ? "rtl" : "ltr" }}>
-      {/* HEADER (مثل السابق) */}
+      {/* HEADER (نفس السابق) */}
       <div style={{ padding: "16px 20px", borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <img src="https://i.imgur.com/QMj8XdO.jpeg" alt="Qoot Logo" style={{ height: 40 }} />
@@ -164,7 +227,7 @@ export default function PlanScreen() {
       </div>
 
       <div style={{ maxWidth: 700, margin: "0 auto", padding: "22px 16px" }}>
-        {/* رسالة ترحيبية */}
+        {/* Welcome message (طويلة) */}
         <div className="fu" style={{ background: `linear-gradient(135deg,${C.card},${C.cardLight})`, border: `1px solid ${C.border}`, borderRadius: 20, padding: "22px 22px", marginBottom: 14 }}>
           <div style={{ fontSize: 12, color: C.teal, fontWeight: 600, marginBottom: 8 }}>{T.plan.ready[lang]}</div>
           <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8 }}>{renderTextWithLinks(plan.human_intro)}</div>
@@ -218,7 +281,7 @@ export default function PlanScreen() {
           </div>
         )}
 
-        {/* الخطة الأسبوعية (مع التمارين داخل اليوم) */}
+        {/* الخطة الأسبوعية مع التمارين ووقتها */}
         <div className="fu3" style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 20, padding: "20px 16px", marginBottom: 14 }}>
           <div style={{ fontSize: 14, fontWeight: 600, color: C.teal, marginBottom: 14 }}>{T.plan.weeklyPlan[lang]} {(!paid) && <span style={{ color: C.amber, fontSize: 12 }}>{T.plan.preview[lang]}</span>}</div>
           <div style={{ display: "flex", gap: 8, overflowX: "auto", marginBottom: 14 }}>
@@ -255,10 +318,17 @@ export default function PlanScreen() {
                   </div>
                 );
               })}
-              {/* ✅ إضافة التمرين الخاص بهذا اليوم مع الوقت المفضل */}
+              {/* عرض التمرين والوقت المفضل */}
               {plan.weekly_plan[activeDay].workout && (
                 <div style={{ background: C.cardLight, borderRadius: 14, padding: "14px", marginTop: 10, border: `1px solid ${C.teal}44` }}>
-                  <div style={{ fontSize: 13, color: C.teal, fontWeight: 700, marginBottom: 6 }}>🏋️ {lang === "ar" ? "تمرين اليوم" : "Today's Exercise"}</div>
+                  <div style={{ fontSize: 13, color: C.teal, fontWeight: 700, marginBottom: 6 }}>
+                    🏋️ {lang === "ar" ? "تمرين اليوم" : "Today's Exercise"}
+                    {plan.weekly_plan[activeDay].exercise_time && (
+                      <span style={{ fontSize: 11, color: C.amber, marginLeft: 8 }}>
+                        ({lang === "ar" ? "الوقت المفضل: " : "Best time: "}{plan.weekly_plan[activeDay].exercise_time})
+                      </span>
+                    )}
+                  </div>
                   <div style={{ fontSize: 14, color: C.text, lineHeight: 1.6 }}>{plan.weekly_plan[activeDay].workout}</div>
                 </div>
               )}
@@ -273,8 +343,7 @@ export default function PlanScreen() {
           )}
         </div>
 
-        {/* باقي المحتوى (النصائح، الدفع، لوحة المتخصص، إلخ) يبقى كما هو دون تغيير */}
-        {/* نصائح (تظهر فقط بعد الدفع) - لم نغيرها */}
+        {/* النصائح (تظهر فقط بعد الدفع) */}
         {paid ? (
           <div className="fu4" style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 20, padding: "20px 16px", marginBottom: 14 }}>
             <div style={{ fontSize: 14, fontWeight: 600, color: C.teal, marginBottom: 14 }}>{T.plan.tips[lang]}</div>
@@ -293,7 +362,7 @@ export default function PlanScreen() {
           </div>
         )}
 
-        {/* الدفع (لم نغيره) */}
+        {/* الدفع (بدون تغيير) */}
         <div className="fu4" style={{ background: C.card, border: `1px solid #009cde44`, borderRadius: 20, padding: "20px 16px", marginBottom: 14 }}>
           <div style={{ fontSize: 14, fontWeight: 600, color: "#009cde", marginBottom: 4 }}>{T.plan.payment[lang]}</div>
           <div style={{ fontSize: 13, color: C.muted, marginBottom: 16, lineHeight: 1.7 }}>{T.plan.paymentDesc[lang]}</div>
@@ -353,7 +422,7 @@ export default function PlanScreen() {
           )}
         </div>
 
-        {/* لوحة المتخصص (لم نتغير) */}
+        {/* باقي الأقسام (لوحة المتخصص، متابعة أسبوعية، إعادة التشغيل) كما هي دون تغيير */}
         {role !== "customer" && (
           <div className="fu4" style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 20, padding: "20px 16px", marginBottom: 20 }}>
             <div style={{ fontSize: 14, fontWeight: 600, color: C.teal, marginBottom: 14 }}>{T.plan.specialistPanel[lang]} {role === "admin" ? T.plan.admin[lang] : ""}</div>
@@ -363,7 +432,6 @@ export default function PlanScreen() {
           </div>
         )}
 
-        {/* متابعة أسبوعية (لم تتغير) */}
         {approved && (
           <div className="fu4" style={{ background: `linear-gradient(135deg,${C.tealGlow},${C.amberGlow})`, border: `1px solid ${C.teal}44`, borderRadius: 20, padding: "22px 20px", marginBottom: 14, textAlign: "center" }}>
             <div style={{ fontSize: 22, marginBottom: 8 }}>📅</div>
@@ -375,7 +443,6 @@ export default function PlanScreen() {
           </div>
         )}
 
-        {/* إعادة التشغيل (لم تتغير) */}
         <button onClick={() => { setScreen("landing"); setAnswers({}); setCurrentQ(0); setPlan(null); setApproved(false); setActiveDay(0); setWeekNum(1); setFollowUp({}); }} style={{ background: "none", border: "none", color: C.muted, cursor: "pointer", width: "100%", textAlign: "center", padding: "12px", fontSize: 14 }}>
           {T.plan.restart[lang]}
         </button>
