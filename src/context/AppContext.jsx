@@ -42,36 +42,30 @@ export function AppProvider({ children }) {
   // ========== Google Sign-In ==========
   const signInWithGoogle = async () => {
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: {
-          redirectTo: window.location.origin,
-        },
+        options: { redirectTo: window.location.origin }
       });
       if (error) throw error;
-      return { data, error: null };
     } catch (err) {
-      return { data: null, error: err.message };
+      console.error("Google sign-in error:", err);
     }
   };
 
-  // ========== Supabase Auth – restore session + listen for changes ==========
+  // ========== Supabase Auth – restore session + listen ==========
   useEffect(() => {
-    // Check existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         setUid(session.user.id);
         localStorage.setItem("qoot_uid", session.user.id);
-        // Get or create user profile
         supabase
           .from("users")
           .select("*")
           .eq("id", session.user.id)
           .single()
           .then(({ data }) => {
-            if (data) {
-              setUserProfile(data);
-            } else {
+            if (data) setUserProfile(data);
+            else {
               const newUser = {
                 id: session.user.id,
                 name: session.user.user_metadata?.name || session.user.email?.split("@")[0],
@@ -85,14 +79,10 @@ export function AppProvider({ children }) {
               supabase.from("users").upsert(newUser).then(() => setUserProfile(newUser));
             }
           });
-        // If user is authenticated and on landing/auth, move to quiz
-        if (screen === "landing" || screen === "auth") {
-          setScreen("quiz");
-        }
+        if (screen === "landing" || screen === "auth") setScreen("quiz");
       }
     });
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
         setUid(session.user.id);
@@ -103,9 +93,8 @@ export function AppProvider({ children }) {
           .eq("id", session.user.id)
           .single()
           .then(({ data }) => {
-            if (data) {
-              setUserProfile(data);
-            } else {
+            if (data) setUserProfile(data);
+            else {
               const newUser = {
                 id: session.user.id,
                 name: session.user.user_metadata?.name || session.user.email?.split("@")[0],
@@ -119,9 +108,7 @@ export function AppProvider({ children }) {
               supabase.from("users").upsert(newUser).then(() => setUserProfile(newUser));
             }
           });
-        if (screen === "landing" || screen === "auth") {
-          setScreen("quiz");
-        }
+        if (screen === "landing" || screen === "auth") setScreen("quiz");
       } else {
         setUid(null);
         setUserProfile(null);
@@ -132,7 +119,7 @@ export function AppProvider({ children }) {
     return () => subscription.unsubscribe();
   }, [screen]);
 
-  // ========== Load saved plan from localStorage ==========
+  // ========== Load saved plan ==========
   useEffect(() => {
     const savedPlan = localStorage.getItem("qoot_plan");
     const savedAnswers = localStorage.getItem("qoot_answers");
@@ -145,7 +132,7 @@ export function AppProvider({ children }) {
     }
   }, []);
 
-  // ========== RTL/LTR ==========
+  // ========== RTL ==========
   useEffect(() => {
     document.body.className = lang === "ar" ? "rtl" : "ltr";
   }, [lang]);
@@ -156,7 +143,6 @@ export function AppProvider({ children }) {
     T.common.loading4[lang], T.common.loading5[lang], T.common.loading6[lang]
   ];
 
-  // ========== Derived data ==========
   const QUESTIONS = T.questions;
   const q = QUESTIONS[currentQ];
 
@@ -187,13 +173,11 @@ export function AppProvider({ children }) {
     return true;
   }, [q, targetMode, customTarget, countrySelected, selected, inputVal]);
 
-  // ========== Reset fields ==========
   const resetFields = useCallback(() => {
     setInputVal(""); setSelected([]); setTargetMode(""); setCustomTarget("");
     setCountrySearch(""); setCountrySelected(""); setHealthNotes("");
   }, []);
 
-  // ========== Toggle selection ==========
   const toggle = useCallback((opt) => {
     const qType = QUESTIONS[currentQ]?.type;
     if (!qType) return;
@@ -206,7 +190,6 @@ export function AppProvider({ children }) {
     });
   }, [currentQ, lang]);
 
-  // ========== Helper ==========
   const inp = (extra = {}) => ({
     width: "100%", background: "#1E293B", border: `2px solid #334155`, borderRadius: 12,
     padding: "15px 18px", fontSize: 16, color: "#F8FAFC",
@@ -247,7 +230,7 @@ export function AppProvider({ children }) {
     uid, setUid,
     userProfile, setUserProfile,
     viewedUserId, setViewedUserId,
-    signInWithGoogle, // <-- expose Google sign-in function
+    signInWithGoogle,
     MSGS, QUESTIONS, q,
     debouncedSearch, countryResults,
     hw, bmiInfo, canNext,
