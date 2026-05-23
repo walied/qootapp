@@ -45,17 +45,69 @@ function getDemoPlan(lang, firstName, country = '') {
     snack: { options: ['تفاحة', 'موزة', 'حفنة فول سوداني غير مملح'], macros: 'بروتين: 5g | كارب: 15g | دهون: 3g' }
   }));
 
-  const workout = lang === 'ar'
-    ? 'السبت: إحماء 5 دقائق، قفز بالحبل 3×30 ثانية، ضغط 3×10، قرفصاء 3×15، بلانك 3×30 ثانية.\nالأحد: طعنات 3×12 لكل رجل، بيربيز 3×10، رفع ساقين 3×20، مشي سريع 10 دقائق.\nالإثنين: راحة.\nالثلاثاء: تمارين مقاومة بزجاجات ماء 3×15، مشي في المكان 15 دقيقة.\nالأربعاء: يوغا أو تمدد عميق 20 دقيقة.\nالخميس: قفز مع رفع الركبة 3×20، ضغط على الحائط 3×15، تمارين بطن دراجة 3×20.\nالجمعة: تمارين كارديو (قفز نجم، ركض في المكان) 15 دقيقة.'
-    : 'Saturday: Jump rope 3x30sec, push-ups 3x10, squats 3x15, plank 3x30sec.\nSunday: Lunges 3x12, burpees 3x10, leg raises 3x20, brisk walk 10min.\nMonday: Rest.\nTuesday: Resistance with water bottles 3x15, march in place 15min.\nWednesday: Yoga/deep stretch 20min.\nThursday: High knee jumps 3x20, wall push-ups 3x15, bicycle crunches 3x20.\nFriday: Cardio (star jumps, jog in place) 15min.';
+  // New workout section: each day has a specific routine and preferred timing relative to meals
+  const workoutByDay = {
+    [lang === 'ar' ? 'الأحد' : 'Sunday']: {
+      routine: 'تمرين خفيف: مشي سريع 20 دقيقة + تمارين إطالة',
+      timing: 'بعد وجبة الفطار'
+    },
+    [lang === 'ar' ? 'الإثنين' : 'Monday']: {
+      routine: 'تمارين منزلية: ضغط (3×10)، قرفصاء (3×15)، بلانك (3×30 ثانية)',
+      timing: 'بعد وجبة الفطار'
+    },
+    [lang === 'ar' ? 'الثلاثاء' : 'Tuesday']: {
+      routine: 'كارديو: قفز بالحبل 15 دقيقة + تمارين بطن',
+      timing: 'بعد وجبة العشاء'
+    },
+    [lang === 'ar' ? 'الأربعاء' : 'Wednesday']: {
+      routine: 'يوغا أو تمدد عميق لمدة 20 دقيقة',
+      timing: 'في أي وقت خلال اليوم'
+    },
+    [lang === 'ar' ? 'الخميس' : 'Thursday']: {
+      routine: 'تمارين مقاومة باستخدام زجاجات ماء (3×15)، رفع ساقين (3×20)',
+      timing: 'بعد وجبة الفطار'
+    },
+    [lang === 'ar' ? 'الجمعة' : 'Friday']: {
+      routine: 'تمارين كارديو منزلية: قفز النجم، ركض في المكان (15 دقيقة)',
+      timing: 'بعد وجبة الفطار'
+    },
+    [lang === 'ar' ? 'السبت' : 'Saturday']: {
+      routine: 'تمارين شاملة: ضغط، قرفصاء، بلانك، كارديو خفيف (20 دقيقة)',
+      timing: 'بعد وجبة العشاء'
+    }
+  };
+
+  // Build a detailed workout string per day with timing
+  let workoutText = '';
+  for (let i = 0; i < days.length; i++) {
+    const day = days[i];
+    const w = workoutByDay[day];
+    if (w) {
+      workoutText += `${day}: ${w.routine} (${w.timing}).\n`;
+    } else {
+      workoutText += `${day}: راحة نشطة (مشي خفيف).\n`;
+    }
+  }
 
   const tips = lang === 'ar'
-    ? ['تناول 5-6 وجبات صغيرة يومياً', 'اشرب كوب ماء قبل كل وجبة', 'استخدم طبقاً أصغر للتحكم في الكمية', 'امش 10 دقائق بعد كل وجبة', 'تناول الفواكه الكاملة بدلاً من العصائر']
-    : ['Eat 5-6 small meals daily', 'Drink water before each meal', 'Use a smaller plate', 'Walk 10 min after meals', 'Eat whole fruits'];
+    ? [
+        'تناول 4 وجبات صغيرة يومياً بدلاً من وجبتين كبيرتين.',
+        'اشرب كوب ماء قبل كل وجبة بـ 10 دقائق.',
+        'استخدم طبقاً أصغر للتحكم في كمية الطعام.',
+        'امش 10 دقائق بعد الوجبات الرئيسية.',
+        'تناول الفواكه الكاملة بدلاً من العصائر.'
+      ]
+    : [
+        'Eat 4 small meals daily instead of 2 large ones.',
+        'Drink a glass of water 10 minutes before each meal.',
+        'Use a smaller plate to control portions.',
+        'Walk 10 minutes after main meals.',
+        'Eat whole fruits instead of juices.'
+      ];
 
   const intro = lang === 'ar'
-    ? `مرحباً ${firstName || ''}، هذه خطة غذائية تجريبية مبنية على أرخص المكونات المتوفرة في ${country || 'بلدك'}. نحن نتابع معك أسبوعياً. تواصل معنا عبر واتساب: https://wa.me/96598002104`
-    : `Hello ${firstName || ''}, this is a demo plan based on the cheapest local ingredients in ${country || 'your country'}. We follow up weekly. Contact us on WhatsApp: https://wa.me/96598002104`;
+    ? `مرحباً ${firstName || ''}، هذه خطة غذائية تجريبية مبنية على أرخص المكونات المتوفرة في ${country || 'بلدك'}. ننصحك بممارسة التمارين في الأوقات المحددة لكل يوم. تواصل معنا عبر واتساب: https://wa.me/96598002104`
+    : `Hello ${firstName || ''}, this is a demo plan based on the cheapest local ingredients in ${country || 'your country'}. We recommend doing the exercises at the suggested times. Contact us on WhatsApp: https://wa.me/96598002104`;
 
   return {
     human_intro: intro,
@@ -64,7 +116,7 @@ function getDemoPlan(lang, firstName, country = '') {
     weight_to_lose: 5,
     expected_weeks: 10,
     weekly_plan: weeklyPlan,
-    home_workout: workout,
+    home_workout: workoutText,
     tips: tips,
     specialist_notes: ''
   };
