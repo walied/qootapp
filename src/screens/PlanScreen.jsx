@@ -1,4 +1,4 @@
-// src/screens/PlanScreen.jsx
+// src/screens/PlanScreen.jsx (نسخة تعمل بالكامل بدون API)
 import { useApp } from "../context/AppContext";
 import { C, T, COUNTRIES } from "../constants";
 import { fullName } from "../utils";
@@ -15,7 +15,6 @@ const PAY = {
   },
 };
 
-// Helper to make WhatsApp links clickable
 function renderTextWithLinks(text) {
   if (!text) return text;
   const urlRegex = /(https?:\/\/wa\.me\/\d+|wa\.\d+)/g;
@@ -30,8 +29,8 @@ function renderTextWithLinks(text) {
   });
 }
 
-// Generate a complete demo plan when the real plan is missing fields
-function getDemoPlan(lang, firstName, country = '') {
+// دالة توليد الخطة التجريبية الكاملة (بدون الاعتماد على API)
+function getFullDemoPlan(lang, firstName, country) {
   const days = lang === 'ar'
     ? ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت']
     : ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -45,69 +44,42 @@ function getDemoPlan(lang, firstName, country = '') {
     snack: { options: ['تفاحة', 'موزة', 'حفنة فول سوداني غير مملح'], macros: 'بروتين: 5g | كارب: 15g | دهون: 3g' }
   }));
 
-  // New workout section: each day has a specific routine and preferred timing relative to meals
+  // تمارين يومية مع تحديد الوقت المفضل
   const workoutByDay = {
-    [lang === 'ar' ? 'الأحد' : 'Sunday']: {
-      routine: 'تمرين خفيف: مشي سريع 20 دقيقة + تمارين إطالة',
-      timing: 'بعد وجبة الفطار'
-    },
-    [lang === 'ar' ? 'الإثنين' : 'Monday']: {
-      routine: 'تمارين منزلية: ضغط (3×10)، قرفصاء (3×15)، بلانك (3×30 ثانية)',
-      timing: 'بعد وجبة الفطار'
-    },
-    [lang === 'ar' ? 'الثلاثاء' : 'Tuesday']: {
-      routine: 'كارديو: قفز بالحبل 15 دقيقة + تمارين بطن',
-      timing: 'بعد وجبة العشاء'
-    },
-    [lang === 'ar' ? 'الأربعاء' : 'Wednesday']: {
-      routine: 'يوغا أو تمدد عميق لمدة 20 دقيقة',
-      timing: 'في أي وقت خلال اليوم'
-    },
-    [lang === 'ar' ? 'الخميس' : 'Thursday']: {
-      routine: 'تمارين مقاومة باستخدام زجاجات ماء (3×15)، رفع ساقين (3×20)',
-      timing: 'بعد وجبة الفطار'
-    },
-    [lang === 'ar' ? 'الجمعة' : 'Friday']: {
-      routine: 'تمارين كارديو منزلية: قفز النجم، ركض في المكان (15 دقيقة)',
-      timing: 'بعد وجبة الفطار'
-    },
-    [lang === 'ar' ? 'السبت' : 'Saturday']: {
-      routine: 'تمارين شاملة: ضغط، قرفصاء، بلانك، كارديو خفيف (20 دقيقة)',
-      timing: 'بعد وجبة العشاء'
-    }
+    [lang === 'ar' ? 'الأحد' : 'Sunday']: 'تمرين خفيف: مشي سريع 20 دقيقة + تمارين إطالة (بعد وجبة الفطار)',
+    [lang === 'ar' ? 'الإثنين' : 'Monday']: 'تمارين منزلية: ضغط (3×10)، قرفصاء (3×15)، بلانك (3×30 ثانية) (بعد وجبة الفطار)',
+    [lang === 'ar' ? 'الثلاثاء' : 'Tuesday']: 'كارديو: قفز بالحبل 15 دقيقة + تمارين بطن (بعد وجبة العشاء)',
+    [lang === 'ar' ? 'الأربعاء' : 'Wednesday']: 'يوغا أو تمدد عميق 20 دقيقة (في أي وقت)',
+    [lang === 'ar' ? 'الخميس' : 'Thursday']: 'تمارين مقاومة باستخدام زجاجات ماء (3×15)، رفع ساقين (3×20) (بعد وجبة الفطار)',
+    [lang === 'ar' ? 'الجمعة' : 'Friday']: 'تمارين كارديو منزلية: قفز النجم، ركض في المكان (15 دقيقة) (بعد وجبة الفطار)',
+    [lang === 'ar' ? 'السبت' : 'Saturday']: 'تمارين شاملة: ضغط، قرفصاء، بلانك، كارديو خفيف (20 دقيقة) (بعد وجبة العشاء)'
   };
 
-  // Build a detailed workout string per day with timing
   let workoutText = '';
   for (let i = 0; i < days.length; i++) {
     const day = days[i];
-    const w = workoutByDay[day];
-    if (w) {
-      workoutText += `${day}: ${w.routine} (${w.timing}).\n`;
-    } else {
-      workoutText += `${day}: راحة نشطة (مشي خفيف).\n`;
-    }
+    workoutText += `${day}: ${workoutByDay[day] || 'راحة نشطة (مشي خفيف)'}.\n`;
   }
 
   const tips = lang === 'ar'
     ? [
-        'تناول 4 وجبات صغيرة يومياً بدلاً من وجبتين كبيرتين.',
-        'اشرب كوب ماء قبل كل وجبة بـ 10 دقائق.',
-        'استخدم طبقاً أصغر للتحكم في كمية الطعام.',
-        'امش 10 دقائق بعد الوجبات الرئيسية.',
-        'تناول الفواكه الكاملة بدلاً من العصائر.'
+        '🍽️ تناول 4 وجبات صغيرة يومياً بدلاً من وجبتين كبيرتين.',
+        '💧 اشرب كوب ماء قبل كل وجبة بـ 10 دقائق.',
+        '🍽️ استخدم طبقاً أصغر للتحكم في كمية الطعام.',
+        '🚶 امش 10 دقائق بعد الوجبات الرئيسية.',
+        '🍎 تناول الفواكه الكاملة بدلاً من العصائر.'
       ]
     : [
-        'Eat 4 small meals daily instead of 2 large ones.',
-        'Drink a glass of water 10 minutes before each meal.',
-        'Use a smaller plate to control portions.',
-        'Walk 10 minutes after main meals.',
-        'Eat whole fruits instead of juices.'
+        '🍽️ Eat 4 small meals daily instead of 2 large ones.',
+        '💧 Drink a glass of water 10 minutes before each meal.',
+        '🍽️ Use a smaller plate to control portions.',
+        '🚶 Walk 10 minutes after main meals.',
+        '🍎 Eat whole fruits instead of juices.'
       ];
 
   const intro = lang === 'ar'
-    ? `مرحباً ${firstName || ''}، هذه خطة غذائية تجريبية مبنية على أرخص المكونات المتوفرة في ${country || 'بلدك'}. ننصحك بممارسة التمارين في الأوقات المحددة لكل يوم. تواصل معنا عبر واتساب: https://wa.me/96598002104`
-    : `Hello ${firstName || ''}, this is a demo plan based on the cheapest local ingredients in ${country || 'your country'}. We recommend doing the exercises at the suggested times. Contact us on WhatsApp: https://wa.me/96598002104`;
+    ? `مرحباً ${firstName || ''}، هذه خطة غذائية متكاملة تعتمد على أرخص المكونات المتوفرة في ${country || 'بلدك'}. التمارين مرفقة مع الوقت المناسب لأدائها. للدعم: https://wa.me/96598002104`
+    : `Hello ${firstName || ''}, this is a complete meal plan using the cheapest local ingredients in ${country || 'your country'}. Exercises are listed with preferred timing. Support: https://wa.me/96598002104`;
 
   return {
     human_intro: intro,
@@ -124,7 +96,7 @@ function getDemoPlan(lang, firstName, country = '') {
 
 export default function PlanScreen() {
   const {
-    lang, setLang, setScreen, answers, plan: originalPlan, approved, setApproved,
+    lang, setLang, setScreen, answers, approved, setApproved,
     activeDay, setActiveDay, weekNum, paid, setPaid,
     isSimulatingPayment, setIsSimulatingPayment,
     isSendingWhatsApp, setIsSendingWhatsApp,
@@ -135,17 +107,8 @@ export default function PlanScreen() {
     bmiInfo, setAnswers, setCurrentQ, setPlan, setWeekNum
   } = useApp();
 
-  // إذا كانت الخطة الأصلية ناقصة أو مفقودة، استخدم الخطة التجريبية
-  let plan = originalPlan;
-  if (!plan || !plan.weekly_plan || !plan.home_workout || !plan.tips || plan.weekly_plan.length === 0) {
-    console.warn("⚠️ الخطة غير مكتملة، يتم استخدام خطة تجريبية بدلاً من ذلك.", plan);
-    plan = getDemoPlan(lang, answers.first_name, answers.country);
-  }
-
-  if (!plan) {
-    setScreen("landing");
-    return null;
-  }
+  // استخدام الخطة التجريبية الجديدة دائماً (نتجاهل أي خطة قديمة)
+  const plan = getFullDemoPlan(lang, answers.first_name, answers.country);
 
   const bmiCalc = bmiInfo || (() => {
     if (answers.height && answers.current_weight) {
@@ -157,12 +120,8 @@ export default function PlanScreen() {
 
   const getCountryFlag = (countryName) => {
     if (!countryName) return "🌍";
-    const found = COUNTRIES.find(
-      c => c.nameAr === countryName || c.nameEn === countryName
-    );
-    if (found) {
-      return <img src={found.flag} alt={found.nameEn} style={{ width: 24, height: 18, verticalAlign: "middle" }} />;
-    }
+    const found = COUNTRIES.find(c => c.nameAr === countryName || c.nameEn === countryName);
+    if (found) return <img src={found.flag} alt={found.nameEn} style={{ width: 24, height: 18, verticalAlign: "middle" }} />;
     return countryName + " ⚠️";
   };
 
@@ -173,7 +132,7 @@ export default function PlanScreen() {
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <img src="https://i.imgur.com/QMj8XdO.jpeg" alt="Qoot Logo" style={{ height: 40 }} />
         </div>
-        <button onClick={() => setScreen("dashboard")} style={{ background: C.cardLight, border: `1px solid ${C.border}`, color: C.text, borderRadius: 8, padding: "6px 12px", fontSize: 13, cursor: "pointer", fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif" }}>
+        <button onClick={() => setScreen("dashboard")} style={{ background: C.cardLight, border: `1px solid ${C.border}`, color: C.text, borderRadius: 8, padding: "6px 12px", fontSize: 13, cursor: "pointer" }}>
           ← {lang === "ar" ? "لوحة التحكم" : "Dashboard"}
         </button>
         <div style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>
@@ -186,15 +145,13 @@ export default function PlanScreen() {
       </div>
 
       <div style={{ maxWidth: 700, margin: "0 auto", padding: "22px 16px" }}>
-        {/* Welcome message with clickable WhatsApp link */}
+        {/* رسالة ترحيبية */}
         <div className="fu" style={{ background: `linear-gradient(135deg,${C.card},${C.cardLight})`, border: `1px solid ${C.border}`, borderRadius: 20, padding: "22px 22px", marginBottom: 14 }}>
           <div style={{ fontSize: 12, color: C.teal, fontWeight: 600, marginBottom: 8 }}>{T.plan.ready[lang]}</div>
-          <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8 }}>
-            {renderTextWithLinks(plan.human_intro || plan.summary)}
-          </div>
+          <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8 }}>{renderTextWithLinks(plan.human_intro)}</div>
         </div>
 
-        {/* Client info with flags */}
+        {/* معلومات العميل */}
         <div className="fu2" style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 20, padding: "20px 20px", marginBottom: 14 }}>
           <div style={{ fontSize: 14, fontWeight: 600, color: C.teal, marginBottom: 14 }}>{T.plan.your_info[lang]}</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12, fontSize: 13 }}>
@@ -212,7 +169,7 @@ export default function PlanScreen() {
           </div>
         </div>
 
-        {/* Calories & Goal */}
+        {/* السعرات والهدف */}
         <div className="fu2" style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 10, marginBottom: 14 }}>
           <div style={{ background: C.card, border: `1px solid ${C.teal}33`, borderRadius: 14, padding: "16px 12px", textAlign: "center" }}>
             <div style={{ fontSize: 19, fontWeight: 700, color: C.teal }}>{plan.target_calories}</div>
@@ -224,6 +181,7 @@ export default function PlanScreen() {
           </div>
         </div>
 
+        {/* الماكروز */}
         {plan.daily_macros && (
           <div className="fu2" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10, marginBottom: 14 }}>
             <div style={{ background: C.cardLight, borderRadius: 12, padding: "12px", textAlign: "center", border: `1px solid ${C.border}` }}>
@@ -241,18 +199,18 @@ export default function PlanScreen() {
           </div>
         )}
 
-        {/* Weekly plan */}
+        {/* الخطة الأسبوعية */}
         <div className="fu3" style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 20, padding: "20px 16px", marginBottom: 14 }}>
           <div style={{ fontSize: 14, fontWeight: 600, color: C.teal, marginBottom: 14 }}>{T.plan.weeklyPlan[lang]} {(!paid) && <span style={{ color: C.amber, fontSize: 12 }}>{T.plan.preview[lang]}</span>}</div>
           <div style={{ display: "flex", gap: 8, overflowX: "auto", marginBottom: 14 }}>
-            {plan.weekly_plan?.map((d, i) => (
+            {plan.weekly_plan.map((d, i) => (
               <button key={i} onClick={() => { if (paid || i === 0) setActiveDay(i); }}
-                style={{ flexShrink: 0, background: activeDay === i ? C.teal : C.cardLight, color: activeDay === i ? "#fff" : C.muted, border: `2px solid ${activeDay === i ? C.teal : C.border}`, borderRadius: 10, padding: "8px 14px", fontSize: 13, fontWeight: activeDay === i ? 700 : 400, cursor: (!paid && i > 0) ? "not-allowed" : "pointer", fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif", opacity: (!paid && i > 0) ? 0.5 : 1 }}>
+                style={{ flexShrink: 0, background: activeDay === i ? C.teal : C.cardLight, color: activeDay === i ? "#fff" : C.muted, border: `2px solid ${activeDay === i ? C.teal : C.border}`, borderRadius: 10, padding: "8px 14px", fontSize: 13, fontWeight: activeDay === i ? 700 : 400, cursor: (!paid && i > 0) ? "not-allowed" : "pointer", opacity: (!paid && i > 0) ? 0.5 : 1 }}>
                 {d.day} {(!paid && i > 0) && "🔒"}
               </button>
             ))}
           </div>
-          {plan.weekly_plan?.[activeDay] && (
+          {plan.weekly_plan[activeDay] && (
             <div>
               {[[T.plan.breakfast[lang], "breakfast"], [T.plan.lunch[lang], "lunch"], [T.plan.dinner[lang], "dinner"], [T.plan.snack[lang], "snack"]].map(([label, key]) => {
                 const mealObj = plan.weekly_plan[activeDay][key];
@@ -284,11 +242,11 @@ export default function PlanScreen() {
           )}
         </div>
 
-        {/* Workout */}
+        {/* التمارين (تظهر فقط بعد الدفع) */}
         {paid ? (
           <div className="fu3" style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 20, padding: "20px 16px", marginBottom: 14 }}>
             <div style={{ fontSize: 14, fontWeight: 600, color: C.teal, marginBottom: 12 }}>{T.plan.workout[lang]}</div>
-            <div style={{ fontSize: 14, color: C.text, lineHeight: 1.8, whiteSpace: "pre-wrap" }}>{plan.home_workout || plan.exercise}</div>
+            <div style={{ fontSize: 14, color: C.text, lineHeight: 1.8, whiteSpace: "pre-wrap" }}>{plan.home_workout}</div>
           </div>
         ) : (
           <div className="fu3" style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 20, padding: "20px 16px", marginBottom: 14, textAlign: "center", opacity: 0.6 }}>
@@ -298,11 +256,11 @@ export default function PlanScreen() {
           </div>
         )}
 
-        {/* Tips */}
+        {/* النصائح (تظهر فقط بعد الدفع) */}
         {paid ? (
           <div className="fu4" style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 20, padding: "20px 16px", marginBottom: 14 }}>
             <div style={{ fontSize: 14, fontWeight: 600, color: C.teal, marginBottom: 14 }}>{T.plan.tips[lang]}</div>
-            {plan.tips?.map((tip, i) => (
+            {plan.tips.map((tip, i) => (
               <div key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 12 }}>
                 <div style={{ width: 24, height: 24, background: C.tealGlow, border: `1px solid ${C.teal}44`, borderRadius: 7, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: C.teal, fontSize: 11, fontWeight: 700 }}>✓</div>
                 <div style={{ fontSize: 14, color: C.text, lineHeight: 1.7 }}>{tip}</div>
@@ -317,7 +275,7 @@ export default function PlanScreen() {
           </div>
         )}
 
-        {/* Payment */}
+        {/* الدفع */}
         <div className="fu4" style={{ background: C.card, border: `1px solid #009cde44`, borderRadius: 20, padding: "20px 16px", marginBottom: 14 }}>
           <div style={{ fontSize: 14, fontWeight: 600, color: "#009cde", marginBottom: 4 }}>{T.plan.payment[lang]}</div>
           <div style={{ fontSize: 13, color: C.muted, marginBottom: 16, lineHeight: 1.7 }}>{T.plan.paymentDesc[lang]}</div>
@@ -362,7 +320,6 @@ export default function PlanScreen() {
                 fontSize: 16,
                 fontWeight: 700,
                 cursor: isSimulatingPayment ? "wait" : "pointer",
-                fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -378,33 +335,30 @@ export default function PlanScreen() {
           )}
         </div>
 
-        {/* Specialist Panel */}
+        {/* لوحة المتخصص */}
         {role !== "customer" && (
           <div className="fu4" style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 20, padding: "20px 16px", marginBottom: 20 }}>
             <div style={{ fontSize: 14, fontWeight: 600, color: C.teal, marginBottom: 14 }}>{T.plan.specialistPanel[lang]} {role === "admin" ? T.plan.admin[lang] : ""}</div>
-            <button onClick={() => setApproved(true)}
-              style={{ width: "100%", background: approved ? C.cardLight : `linear-gradient(135deg,${C.green},${C.greenDark})`, color: approved ? C.muted : "#fff", border: "none", borderRadius: 12, padding: "16px", fontSize: 16, fontWeight: 700, cursor: approved ? "default" : "pointer", fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif", marginBottom: 10 }}>
+            <button onClick={() => setApproved(true)} style={{ width: "100%", background: approved ? C.cardLight : `linear-gradient(135deg,${C.green},${C.greenDark})`, color: approved ? C.muted : "#fff", border: "none", borderRadius: 12, padding: "16px", fontSize: 16, fontWeight: 700, cursor: approved ? "default" : "pointer", marginBottom: 10 }}>
               {approved ? T.plan.approved[lang] : T.plan.approve[lang]}
             </button>
           </div>
         )}
 
-        {/* Follow-up button */}
+        {/* زر المتابعة الأسبوعية */}
         {approved && (
           <div className="fu4" style={{ background: `linear-gradient(135deg,${C.tealGlow},${C.amberGlow})`, border: `1px solid ${C.teal}44`, borderRadius: 20, padding: "22px 20px", marginBottom: 14, textAlign: "center" }}>
             <div style={{ fontSize: 22, marginBottom: 8 }}>📅</div>
             <div style={{ fontSize: 15, fontWeight: 700, color: C.text, marginBottom: 6 }}>{T.plan.followupWeek[lang]}</div>
             <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.7, marginBottom: 16 }}>{T.plan.followupDesc[lang]}</div>
-            <button onClick={() => { setFollowUp({}); setFollowStep(0); setFollowApproved(false); setScreen("followup"); }}
-              style={{ background: `linear-gradient(135deg,${C.teal},${C.tealDark})`, color: "#fff", border: "none", borderRadius: 12, padding: "14px 36px", fontSize: 15, fontWeight: 700, cursor: "pointer", fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif", boxShadow: `0 6px 20px ${C.teal}33` }}>
+            <button onClick={() => { setFollowUp({}); setFollowStep(0); setFollowApproved(false); setScreen("followup"); }} style={{ background: `linear-gradient(135deg,${C.teal},${C.tealDark})`, color: "#fff", border: "none", borderRadius: 12, padding: "14px 36px", fontSize: 15, fontWeight: 700, cursor: "pointer", boxShadow: `0 6px 20px ${C.teal}33` }}>
               {T.plan.followupBtn[lang]} {weekNum + 1} ←
             </button>
           </div>
         )}
 
-        {/* Restart */}
-        <button onClick={() => { setScreen("landing"); setAnswers({}); setCurrentQ(0); setPlan(null); setApproved(false); setActiveDay(0); setWeekNum(1); setFollowUp({}); }}
-          style={{ background: "none", border: "none", color: C.muted, cursor: "pointer", width: "100%", textAlign: "center", padding: "12px", fontSize: 14, fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif" }}>
+        {/* إعادة التشغيل */}
+        <button onClick={() => { setScreen("landing"); setAnswers({}); setCurrentQ(0); setPlan(null); setApproved(false); setActiveDay(0); setWeekNum(1); setFollowUp({}); }} style={{ background: "none", border: "none", color: C.muted, cursor: "pointer", width: "100%", textAlign: "center", padding: "12px", fontSize: 14 }}>
           {T.plan.restart[lang]}
         </button>
       </div>
