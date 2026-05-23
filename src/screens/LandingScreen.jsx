@@ -24,15 +24,12 @@ export default function LandingScreen() {
             </span>
           )}
           <button onClick={() => setLang(lang === "ar" ? "en" : "ar")}
-            style={{ background: C.cardLight, border: `1px solid ${C.border}`, color: C.text, borderRadius: 8, padding: "6px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif" }}>
+            style={{ background: C.cardLight, border: `1px solid ${C.border}`, color: C.text, borderRadius: 8, padding: "6px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
             {lang === "ar" ? "English" : "العربية"}
           </button>
+          {/* زر تسجيل الدخول */}
           <button onClick={() => setScreen("auth")}
-            style={{
-              background: C.teal, border: "none", color: "#fff", borderRadius: 8,
-              padding: "6px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer",
-              fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif"
-            }}>
+            style={{ background: C.teal, border: "none", color: "#fff", borderRadius: 8, padding: "6px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
             {lang === "ar" ? "تسجيل الدخول" : "Sign In"}
           </button>
           <span style={{ fontSize: 12, color: C.muted, background: C.cardLight, border: `1px solid ${C.border}`, borderRadius: 20, padding: "4px 12px" }}>
@@ -41,7 +38,7 @@ export default function LandingScreen() {
         </div>
       </div>
 
-      {/* rest of your landing content remains unchanged */}
+      {/* باقي محتوى الصفحة كما هو دون تغيير */}
       <div style={{ maxWidth: 660, margin: "0 auto", padding: "56px 20px 40px", textAlign: "center" }}>
         <div className="fu" style={{ display: "inline-flex", alignItems: "center", gap: 8, background: C.tealGlow, border: `1px solid ${C.teal}44`, borderRadius: 100, padding: "6px 18px", fontSize: 13, color: C.teal, marginBottom: 24, fontWeight: 600 }}>
           {T.landing.badge[lang]}
@@ -56,7 +53,7 @@ export default function LandingScreen() {
           {T.landing.warning[lang]}
         </div>
         <button className="fu4" onClick={() => setScreen("quiz")}
-          style={{ background: `linear-gradient(135deg,${C.teal},${C.tealDark})`, color: "#fff", border: "none", borderRadius: 14, padding: "18px 52px", fontSize: 17, fontWeight: 700, cursor: "pointer", fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif", boxShadow: `0 8px 32px ${C.teal}44`, transition: "transform 0.2s" }}
+          style={{ background: `linear-gradient(135deg,${C.teal},${C.tealDark})`, color: "#fff", border: "none", borderRadius: 14, padding: "18px 52px", fontSize: 17, fontWeight: 700, cursor: "pointer", boxShadow: `0 8px 32px ${C.teal}44`, transition: "transform 0.2s" }}
           onMouseEnter={e => e.target.style.transform = "scale(1.03)"}
           onMouseLeave={e => e.target.style.transform = "scale(1)"}>
           {T.landing.cta[lang]}
