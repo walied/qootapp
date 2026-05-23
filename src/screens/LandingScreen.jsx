@@ -1,19 +1,16 @@
-// src/screens/LandingScreen.jsx
 import { useApp } from "../context/AppContext";
 import { C, T } from "../constants";
 
 export default function LandingScreen() {
-  const { lang, setLang, setScreen, role } = useApp(); // ✅ add role
+  const { lang, setLang, setScreen, role } = useApp();
 
   return (
     <div style={{ minHeight: "100vh", background: C.bg, fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif", direction: lang === "ar" ? "rtl" : "ltr", overflowX: "hidden" }}>
-      {/* Header with role indicator */}
       <div style={{ padding: "18px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: `1px solid ${C.border}`, flexWrap: "wrap", gap: 10 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <img src="https://i.imgur.com/QMj8XdO.jpeg" alt="Qoot Logo" style={{ height: 40 }} />
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-          {/* Role indicator */}
           {role !== "customer" && (
             <span style={{
               background: role === "admin" ? C.purple : C.teal,
@@ -30,10 +27,6 @@ export default function LandingScreen() {
             style={{ background: C.cardLight, border: `1px solid ${C.border}`, color: C.text, borderRadius: 8, padding: "6px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif" }}>
             {lang === "ar" ? "English" : "العربية"}
           </button>
-          <button onClick={() => setScreen("login")}
-            style={{ background: "transparent", border: "none", color: C.muted, fontSize: 12, cursor: "pointer", fontFamily: lang === "ar" ? "'Alexandria',sans-serif" : "'Inter',sans-serif" }}>
-            {T.landing.staff[lang]}
-          </button>
           <button onClick={() => setScreen("auth")}
             style={{
               background: C.teal, border: "none", color: "#fff", borderRadius: 8,
@@ -48,7 +41,7 @@ export default function LandingScreen() {
         </div>
       </div>
 
-      {/* Hero */}
+      {/* rest of your landing content remains unchanged */}
       <div style={{ maxWidth: 660, margin: "0 auto", padding: "56px 20px 40px", textAlign: "center" }}>
         <div className="fu" style={{ display: "inline-flex", alignItems: "center", gap: 8, background: C.tealGlow, border: `1px solid ${C.teal}44`, borderRadius: 100, padding: "6px 18px", fontSize: 13, color: C.teal, marginBottom: 24, fontWeight: 600 }}>
           {T.landing.badge[lang]}
@@ -71,7 +64,6 @@ export default function LandingScreen() {
         <div style={{ fontSize: 13, color: C.muted, marginTop: 14 }}>{T.landing.time[lang]}</div>
       </div>
 
-      {/* Features */}
       <div style={{ maxWidth: 800, margin: "0 auto", padding: "0 20px 48px" }}>
         <div className="fu3" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: 14 }}>
           {T.landing.features.map(({ icon, title, desc }) => (
@@ -84,7 +76,6 @@ export default function LandingScreen() {
         </div>
       </div>
 
-      {/* Steps */}
       <div style={{ maxWidth: 560, margin: "0 auto", padding: "0 20px 64px" }}>
         <div style={{ fontSize: 13, color: C.muted, textAlign: "center", marginBottom: 22, fontWeight: 600, letterSpacing: "1px" }}>
           {T.landing.steps[lang]}
