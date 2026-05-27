@@ -20,15 +20,20 @@ const AICoachScreen = () => {
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  // تعريف أسئلة onboarding (بالعربية والإنجليزية)
+  // تعريف الأسئلة مع دعم الوزن المستهدف الذكي
   const steps = [
-    { key: 'current_weight', questionAr: 'ما هو وزنك الحالي (كجم)؟', questionEn: 'What is your current weight (kg)?' },
-    { key: 'height', questionAr: 'ما هو طولك (سم)؟', questionEn: 'What is your height (cm)?' },
-    { key: 'age', questionAr: 'كم عمرك؟', questionEn: 'How old are you?' },
-    { key: 'target_weight', questionAr: 'ما هو الوزن المستهدف؟', questionEn: 'What is your target weight?' },
-    { key: 'activity_level', questionAr: 'مستوى نشاطك؟ (قليل/متوسط/عالي)', questionEn: 'Activity level? (low/medium/high)' },
-    { key: 'health_conditions', questionAr: 'هل تعاني من أي أمراض مزمنة؟ (سكري، ضغط، غدة...)', questionEn: 'Any chronic diseases? (diabetes, pressure, thyroid...)' },
-    { key: 'country', questionAr: 'ما هي بلد إقامتك؟', questionEn: 'What is your country?' }
+    { key: 'current_weight', questionAr: 'ما هو وزنك الحالي (كجم)؟', questionEn: 'Current weight (kg)?', type: 'number' },
+    { key: 'height', questionAr: 'ما هو طولك (سم)؟', questionEn: 'Height (cm)?', type: 'number' },
+    { key: 'age', questionAr: 'كم عمرك؟', questionEn: 'Age?', type: 'number' },
+    { 
+      key: 'target_weight', 
+      questionAr: '', // سيتم توليدها ديناميكياً بعد معرفة الطول
+      questionEn: '',
+      type: 'target_suggestion'
+    },
+    { key: 'activity_level', questionAr: 'مستوى نشاطك؟ (قليل/متوسط/عالي)', questionEn: 'Activity level? (low/medium/high)', type: 'text' },
+    { key: 'health_conditions', questionAr: 'هل تعاني من أي أمراض مزمنة؟ (سكري، ضغط، غدة...)', questionEn: 'Any chronic diseases?', type: 'text' },
+    { key: 'country', questionAr: 'ما هي بلد إقامتك؟', questionEn: 'Country?', type: 'text' }
   ];
 
   useEffect(() => {
@@ -43,7 +48,6 @@ const AICoachScreen = () => {
     }
   }, [user]);
 
-  // تحميل الرسائل السابقة من قاعدة البيانات
   const loadMessages = async () => {
     try {
       const { data, error } = await supabase
@@ -68,7 +72,6 @@ const AICoachScreen = () => {
         setUserProfile(data);
         setOnboardingStep(data.onboarding_step ?? 0);
       } else {
-        // إنشاء ملف شخصي افتراضي
         await supabase.from('user_profiles').insert({ user_id: user.id, onboarding_step: 0 });
         setOnboardingStep(0);
       }
@@ -88,25 +91,49 @@ const AICoachScreen = () => {
     } catch (err) { console.error(err); }
   };
 
-  // دالة معالجة إجابة onboarding (تخزين في قاعدة البيانات ثم عرض السؤال التالي)
+  // حساب الوزن المثالي (BMI = 22)
+  const getIdealWeight = (heightCm) => {
+    const heightM = heightCm / 100;
+    return Math.round(22 * heightM * heightM);
+  };
+
+  // توليد سؤال الوزن المستهدف بناءً على الطول المدخل
+  const getTargetWeightQuestion = () => {
+    const height = userProfile?.height;
+    if (!height) return lang === 'ar' ? 'ما هو الوزن المستهدف؟' : 'Target weight?';
+    const ideal = getIdealWeight(height);
+    return lang === 'ar'
+      ? `الوزن المثالي لطولك هو ${ideal} كجم. هل ترغب في الوصول إلى هذا الوزن؟ (اكتب ${ideal} أو أي رقم آخر)`
+      : `Your ideal weight is ${ideal} kg. Do you want to reach this weight? (enter ${ideal} or any other number)`;
+  };
+
   const handleOnboardingAnswer = async (answer) => {
     const currentStep = onboardingStep;
     if (currentStep >= steps.length) return false;
 
-    const stepKey = steps[currentStep].key;
+    let stepKey = steps[currentStep].key;
+    let processedAnswer = answer.trim();
+
+    // معالجة خاصة للوزن المستهدف: إذا لم يُدخل المستخدم رقماً، استخدم الوزن المثالي
+    if (stepKey === 'target_weight' && userProfile?.height) {
+      const ideal = getIdealWeight(userProfile.height);
+      // إذا أجاب بنعم أو موافق أو ترك فارغاً، استخدم المثالي
+      if (processedAnswer === '' || processedAnswer === 'نعم' || processedAnswer === 'yes' || processedAnswer === 'ok') {
+        processedAnswer = ideal.toString();
+      }
+    }
+
     // تحديث الملف الشخصي
-    const updates = { [stepKey]: answer };
+    const updates = { [stepKey]: processedAnswer, onboarding_step: currentStep + 1 };
     const { error } = await supabase
       .from('user_profiles')
-      .update({ ...updates, onboarding_step: currentStep + 1 })
+      .update(updates)
       .eq('user_id', user.id);
-
     if (error) {
       console.error('Error saving answer:', error);
       return false;
     }
 
-    // تحديث الحالة المحلية
     setUserProfile(prev => ({ ...prev, ...updates }));
     setOnboardingStep(currentStep + 1);
 
@@ -121,7 +148,6 @@ const AICoachScreen = () => {
 
     // إذا اكتمل onboarding، قم بتوليد الخطة
     if (currentStep + 1 >= steps.length) {
-      // إضافة رسالة "جاري تجهيز خطتك..."
       const loadingMsg = {
         role: 'assistant',
         content: lang === 'ar' ? 'جاري تجهيز خطتك الغذائية... يرجى الانتظار قليلاً.' : 'Preparing your meal plan... Please wait.',
@@ -133,8 +159,15 @@ const AICoachScreen = () => {
       return true;
     }
 
-    // عرض السؤال التالي كرسالة من المساعد
-    const nextQuestion = lang === 'ar' ? steps[currentStep + 1].questionAr : steps[currentStep + 1].questionEn;
+    // عرض السؤال التالي
+    let nextQuestion = '';
+    const nextStep = steps[currentStep + 1];
+    if (nextStep.key === 'target_weight') {
+      nextQuestion = getTargetWeightQuestion();
+    } else {
+      nextQuestion = lang === 'ar' ? nextStep.questionAr : nextStep.questionEn;
+    }
+
     const assistantMsg = {
       role: 'assistant',
       content: nextQuestion,
@@ -143,7 +176,7 @@ const AICoachScreen = () => {
     };
     setMessages(prev => [...prev, assistantMsg]);
 
-    // حفظ رسالتي المستخدم والمساعد في قاعدة البيانات
+    // حفظ الرسالتين
     await supabase.from('conversations').insert([
       { user_id: user.id, role: 'user', content: answer, created_at: new Date().toISOString() },
       { user_id: user.id, role: 'assistant', content: nextQuestion, created_at: new Date().toISOString() }
@@ -154,7 +187,6 @@ const AICoachScreen = () => {
 
   const generatePlan = async () => {
     try {
-      // جلب كامل بيانات المستخدم من الجدول
       const { data: profile } = await supabase
         .from('user_profiles')
         .select('*')
@@ -169,17 +201,14 @@ const AICoachScreen = () => {
       const result = await response.json();
       const planData = JSON.parse(result.plan);
 
-      // تخزين الخطة
-      const { error } = await supabase.from('weekly_plans').insert({
+      await supabase.from('weekly_plans').insert({
         user_id: user.id,
         week_number: 1,
         plan_data: planData
       });
-      if (error) throw error;
 
       setCurrentPlan({ plan_data: planData });
 
-      // إرسال رسالة نجاح إلى المحادثة
       const successMsg = {
         role: 'assistant',
         content: lang === 'ar'
@@ -194,16 +223,14 @@ const AICoachScreen = () => {
       console.error('Plan generation error:', err);
       const errorMsg = {
         role: 'assistant',
-        content: lang === 'ar' ? 'عذراً، حدث خطأ في إنشاء خطتك. حاول مجدداً لاحقاً.' : 'Sorry, an error occurred while creating your plan. Please try again later.',
+        content: lang === 'ar' ? 'عذراً، حدث خطأ في إنشاء خطتك. حاول مجدداً لاحقاً.' : 'Sorry, an error occurred. Please try again later.',
         created_at: new Date().toISOString(),
         user_id: user.id
       };
       setMessages(prev => [...prev, errorMsg]);
-      await supabase.from('conversations').insert(errorMsg);
     }
   };
 
-  // إرسال رسالة عادية (بعد اكتمال onboarding)
   const sendNormalMessage = async (text, imageUrl = null) => {
     const userMessage = {
       role: 'user',
@@ -233,16 +260,16 @@ const AICoachScreen = () => {
         user_id: user.id
       };
       setMessages(prev => [...prev, aiMessage]);
-      // الحفظ في قاعدة البيانات سيتم داخل الـ Edge Function (لتجنب التكرار)
+      // لا نحفظ هنا لأن Edge Function تحفظ كلا الطرفين
     } catch (err) {
-      console.error(err);
-      const errorMsg = {
+      console.error('sendNormalMessage error:', err);
+      const errorReply = {
         role: 'assistant',
         content: lang === 'ar' ? 'عذراً، حدث خطأ، حاول مجدداً.' : 'Sorry, an error occurred. Please try again.',
         created_at: new Date().toISOString(),
         user_id: user.id
       };
-      setMessages(prev => [...prev, errorMsg]);
+      setMessages(prev => [...prev, errorReply]);
     } finally {
       setIsLoading(false);
     }
@@ -251,22 +278,19 @@ const AICoachScreen = () => {
   const handleSendMessage = async () => {
     if (!inputText.trim() && !imageFile) return;
 
-    // إذا كان لا يزال في مرحلة onboarding
+    // إذا كنا في مرحلة onboarding
     if (onboardingStep < steps.length) {
-      const success = await handleOnboardingAnswer(inputText.trim());
-      if (success) {
-        setInputText('');
-        setImageFile(null);
-        setImagePreview(null);
-        if (fileInputRef.current) fileInputRef.current.value = '';
-      }
+      await handleOnboardingAnswer(inputText.trim());
+      setInputText('');   // مسح الحقل
+      setImageFile(null);
+      setImagePreview(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
 
-    // بعد onboarding، أرسل الرسالة العادية
+    // بعد onboarding: إرسال رسالة عادية
     let imageUrl = null;
     if (imageFile) {
-      // رفع الصورة إلى Supabase Storage
       const fileName = `${user.id}/${Date.now()}.jpg`;
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('meal-images')
@@ -297,53 +321,40 @@ const AICoachScreen = () => {
     }
   };
 
-  // حساب التقدم الأسبوعي (للسايدبار)
   const weekProgress = currentPlan?.created_at ? {
     weekNumber: currentPlan.week_number || 1,
     currentDay: Math.min(7, Math.floor((Date.now() - new Date(currentPlan.created_at).getTime()) / 86400000) + 1),
     daysRemaining: Math.max(0, 7 - Math.floor((Date.now() - new Date(currentPlan.created_at).getTime()) / 86400000))
   } : null;
 
-  // تحديد النص المعروض في حقل الإدخال (placeholder)
   const getPlaceholder = () => {
     if (onboardingStep < steps.length) {
-      return lang === 'ar' ? steps[onboardingStep].questionAr : steps[onboardingStep].questionEn;
+      const step = steps[onboardingStep];
+      if (step.key === 'target_weight') return getTargetWeightQuestion();
+      return lang === 'ar' ? step.questionAr : step.questionEn;
     }
     return lang === 'ar' ? 'اكتب رسالتك أو ارفع صورة...' : 'Type your message or upload a photo...';
   };
 
   return (
     <div style={{ minHeight: '100vh', background: C.bg, display: 'flex', flexDirection: 'column' }}>
-      {/* Header */}
       <div style={{ background: C.card, padding: '16px 20px', borderBottom: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <button onClick={() => setSidebarOpen(true)} style={{ background: 'transparent', border: 'none', fontSize: '24px', cursor: 'pointer', color: C.text }}>☰</button>
         <h1 style={{ fontSize: '20px', fontWeight: 'bold', color: C.teal, margin: 0 }}>{lang === 'ar' ? 'قوت - مدربك الشخصي' : 'Qoot - Your Coach'}</h1>
         <div style={{ width: '24px' }} />
       </div>
-
-      {/* Chat messages */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '16px 0' }}>
-        {messages.map((msg, idx) => (
-          <ChatMessage key={idx} message={msg} lang={lang} />
-        ))}
-        {isLoading && (
-          <div style={{ padding: '12px 16px', textAlign: 'center', color: C.muted }}>
-            {lang === 'ar' ? 'يجيب...' : 'Thinking...'}
-          </div>
-        )}
+        {messages.map((msg, idx) => <ChatMessage key={idx} message={msg} lang={lang} />)}
+        {isLoading && <div style={{ padding: '12px 16px', textAlign: 'center', color: C.muted }}>{lang === 'ar' ? 'يجيب...' : 'Thinking...'}</div>}
         <div ref={messagesEndRef} />
       </div>
-
-      {/* Image preview */}
       {imagePreview && (
         <div style={{ padding: '8px 16px', background: C.cardLight, display: 'flex', alignItems: 'center', gap: '8px' }}>
           <img src={imagePreview} alt="preview" style={{ width: '60px', height: '60px', borderRadius: '8px', objectFit: 'cover' }} />
           <span style={{ flex: 1, fontSize: '14px', color: C.text }}>{imageFile?.name}</span>
-          <button onClick={() => { setImageFile(null); setImagePreview(null); if (fileInputRef.current) fileInputRef.current.value = ''; }} style={{ background: 'transparent', border: 'none', fontSize: '20px', cursor: 'pointer', color: C.danger }}>✕</button>
+          <button onClick={() => { setImageFile(null); setImagePreview(null); if(fileInputRef.current) fileInputRef.current.value = ''; }} style={{ background: 'transparent', border: 'none', fontSize: '20px', cursor: 'pointer', color: C.danger }}>✕</button>
         </div>
       )}
-
-      {/* Input area */}
       <div style={{ padding: '16px', borderTop: `1px solid ${C.border}`, background: C.bg }}>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           <input
@@ -352,33 +363,14 @@ const AICoachScreen = () => {
             onChange={(e) => setInputText(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
             placeholder={getPlaceholder()}
-            style={{
-              flex: 1,
-              padding: '12px 16px',
-              borderRadius: '24px',
-              border: `1px solid ${C.border}`,
-              background: C.cardLight,
-              color: C.text,
-              fontSize: '14px',
-              outline: 'none',
-              fontFamily: lang === 'ar' ? "'Alexandria', sans-serif" : "'Inter', sans-serif"
-            }}
+            style={{ flex: 1, padding: '12px 16px', borderRadius: '24px', border: `1px solid ${C.border}`, background: C.cardLight, color: C.text, fontSize: '14px', outline: 'none' }}
           />
           <input type="file" accept="image/*" ref={fileInputRef} onChange={handleImageSelect} style={{ display: 'none' }} />
           <button onClick={() => fileInputRef.current?.click()} style={{ background: C.cardLight, border: `1px solid ${C.border}`, borderRadius: '50%', width: '44px', height: '44px', cursor: 'pointer', fontSize: '20px' }}>📷</button>
           <button onClick={handleSendMessage} disabled={isLoading || (!inputText.trim() && !imageFile)} style={{ background: C.teal, border: 'none', borderRadius: '24px', padding: '12px 20px', color: '#fff', cursor: 'pointer', fontWeight: '600', opacity: (isLoading || (!inputText.trim() && !imageFile)) ? 0.6 : 1 }}>➤</button>
         </div>
       </div>
-
-      {/* Sidebar */}
-      <SidebarPlan
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        plan={currentPlan}
-        userMetrics={userMetrics}
-        lang={lang}
-        weekProgress={weekProgress}
-      />
+      <SidebarPlan isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} plan={currentPlan} userMetrics={userMetrics} lang={lang} weekProgress={weekProgress} />
     </div>
   );
 };
