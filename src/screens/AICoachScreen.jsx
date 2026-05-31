@@ -34,7 +34,7 @@ const AICoachScreen = () => {
     { key: 'allergies', questionAr: 'هل تعاني من أي حساسية غذائية؟ (لاكتوز، جلوتين، مكسرات، بيض، بحريات، لا شيء)', questionEn: 'Any food allergies? (lactose, gluten, nuts, eggs, seafood, none)', type: 'text' },
     { key: 'medications', questionAr: 'هل تتناول أدوية تؤثر على الوزن أو الشهية؟ (مثل الكورتيزون، مضادات الاكتئاب، أدوية الغدة، لا شيء)', questionEn: 'Do you take medications that affect weight or appetite? (cortisone, antidepressants, thyroid meds, none)', type: 'text' },
     { key: 'eating_out', questionAr: 'كم مرة تأكل خارج المنزل في الأسبوع؟ (0-1, 2-3, 4-5, أكثر من 5)', questionEn: 'How many times do you eat out per week? (0-1, 2-3, 4-5, more than 5)', type: 'text' },
-    { key: 'whatsapp', questionAr: 'رقم واتسابك (للتواصل والمتابعة):', questionEn: 'Your WhatsApp number:', type: 'text' },
+    { key: 'whatsapp', questionAr: 'رقم واتسابك (مثال: +96550123456)', questionEn: 'Your WhatsApp number (e.g., +96550123456)', type: 'text' },
     { key: 'country', questionAr: 'ما هي بلد إقامتك؟', questionEn: 'What is your country?', type: 'text' }
   ];
 
@@ -132,17 +132,16 @@ const AICoachScreen = () => {
     }
 
     const updates = { [stepKey]: processedAnswer, onboarding_step: currentStep + 1 };
-    const { error, data } = await supabase
+    const { error } = await supabase
       .from('user_profiles')
       .update(updates)
-      .eq('user_id', user.id)
-      .select();
+      .eq('user_id', user.id);
 
     if (error) {
       console.error('Supabase update error:', error);
       const errorMsg = {
         role: 'assistant',
-        content: lang === 'ar' ? `خطأ في حفظ إجابتك: ${error.message}. تأكد من تحديث قاعدة البيانات.` : `Error saving answer: ${error.message}. Please update database.`,
+        content: lang === 'ar' ? `خطأ في حفظ إجابتك: ${error.message}` : `Error saving answer: ${error.message}`,
         created_at: new Date().toISOString(),
         user_id: user.id
       };
@@ -331,10 +330,8 @@ const AICoachScreen = () => {
     }
   };
 
-  // دالة محاكاة الدفع (تفتح نافذة PayPal)
   const handlePayment = () => {
     window.open('https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=abuhaa0@gmail.com&amount=2.99&currency_code=USD&item_name=Qoot%20Week%20Subscription', '_blank');
-    // يمكن لاحقاً استبدالها بـ Stripe أو Google Pay
   };
 
   const weekProgress = currentPlan?.created_at ? {
