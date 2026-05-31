@@ -3,7 +3,6 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { supabase } from '../lib/supabaseClient';
 import { C } from '../constants';
 
-// Helper debounce
 export function useDebounce(value, delay) {
   const [debouncedValue, setDebouncedValue] = useState(value);
   useEffect(() => {
@@ -16,22 +15,16 @@ export function useDebounce(value, delay) {
 const AppContext = createContext(null);
 
 export function AppProvider({ children }) {
-  // ---------- UI state ----------
   const [lang, setLang] = useState('ar');
   const [screen, setScreen] = useState('landing');
   const [loading, setLoading] = useState(false);
-
-  // ---------- User & auth ----------
   const [user, setUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
   const [userMetrics, setUserMetrics] = useState({ level: 1, xp: 0, streak: 0, badges: [] });
-
-  // ---------- Conversation & plan ----------
   const [messages, setMessages] = useState([]);
   const [currentPlan, setCurrentPlan] = useState(null);
   const [onboardingStep, setOnboardingStep] = useState(0);
 
-  // ---------- Supabase auth listener ----------
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
@@ -64,11 +57,9 @@ export function AppProvider({ children }) {
         setScreen('landing');
       }
     });
-
     return () => subscription.unsubscribe();
   }, []);
 
-  // ---------- Data fetching helpers ----------
   const fetchUserProfile = async (userId) => {
     try {
       const { data, error } = await supabase
@@ -112,7 +103,6 @@ export function AppProvider({ children }) {
     }
   };
 
-  // ---------- Google Sign-In ----------
   const signInWithGoogle = async () => {
     try {
       setLoading(true);
@@ -129,7 +119,6 @@ export function AppProvider({ children }) {
     }
   };
 
-  // ---------- Helper: update profile after onboarding ----------
   const updateProfile = async (updates) => {
     if (!user) return;
     try {
@@ -144,7 +133,6 @@ export function AppProvider({ children }) {
     }
   };
 
-  // ---------- NEW: update user profile (used by SidebarProfile) ----------
   const updateUserProfile = async (updates) => {
     if (!user) return false;
     try {
@@ -161,7 +149,6 @@ export function AppProvider({ children }) {
     }
   };
 
-  // ---------- NEW: regenerate plan after profile changes ----------
   const regeneratePlan = async () => {
     if (!user || !userProfile) return false;
     try {
@@ -186,7 +173,6 @@ export function AppProvider({ children }) {
     }
   };
 
-  // ---------- Utility functions ----------
   const inp = (extra = {}) => ({
     width: "100%", background: "#1E293B", border: `2px solid #334155`, borderRadius: 12,
     padding: "15px 18px", fontSize: 16, color: "#F8FAFC",
