@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { supabase } from '../lib/supabaseClient';
 import { C } from '../constants';
 
-// Helper debounce (if not already imported)
+// Helper debounce
 export function useDebounce(value, delay) {
   const [debouncedValue, setDebouncedValue] = useState(value);
   useEffect(() => {
@@ -17,8 +17,8 @@ const AppContext = createContext(null);
 
 export function AppProvider({ children }) {
   // ---------- UI state ----------
-  const [lang, setLang] = useState('ar'); // 'ar' or 'en'
-  const [screen, setScreen] = useState('landing'); // landing, auth, coach
+  const [lang, setLang] = useState('ar');
+  const [screen, setScreen] = useState('landing');
   const [loading, setLoading] = useState(false);
 
   // ---------- User & auth ----------
@@ -29,18 +29,15 @@ export function AppProvider({ children }) {
   // ---------- Conversation & plan ----------
   const [messages, setMessages] = useState([]);
   const [currentPlan, setCurrentPlan] = useState(null);
-  const [onboardingStep, setOnboardingStep] = useState(0); // 0 = not started, 1..N = step index
+  const [onboardingStep, setOnboardingStep] = useState(0);
 
   // ---------- Supabase auth listener ----------
   useEffect(() => {
-    // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         setUser(session.user);
-        // Fetch user profile and plan
         fetchUserProfile(session.user.id);
         fetchCurrentPlan(session.user.id);
-        // Redirect to coach screen (if not already there)
         if (screen !== 'coach') setScreen('coach');
       } else {
         setUser(null);
@@ -52,7 +49,6 @@ export function AppProvider({ children }) {
       }
     });
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
         setUser(session.user);
@@ -85,11 +81,15 @@ export function AppProvider({ children }) {
         setUserProfile(data);
         setOnboardingStep(data.onboarding_step ?? 0);
       } else {
-        // Create empty profile if not exists
-        const { error: insertError } = await supabase
-          .from('user_profiles')
-          .insert({ user_id: userId, onboarding_step: 0 });
-        if (insertError) console.error(insertError);
+        const defaultProfile = {
+          user_id: userId,
+          onboarding_step: 0,
+          diet_type: 'لا شيء',
+          allergies: 'لا شيء',
+          medications: 'لا شيء',
+          eating_out: '0-1'
+        };
+        await supabase.from('user_profiles').insert(defaultProfile);
         setOnboardingStep(0);
       }
     } catch (err) {
@@ -135,7 +135,8 @@ export function AppProvider({ children }) {
     try {
       const { error } = await supabase
         .from('user_profiles')
-        .upsert({ user_id: user.id, ...updates });
+        .update(updates)
+        .eq('user_id', user.id);
       if (error) throw error;
       setUserProfile(prev => ({ ...prev, ...updates }));
     } catch (err) {
@@ -143,7 +144,49 @@ export function AppProvider({ children }) {
     }
   };
 
-  // ---------- Utility functions (for compatibility with existing components) ----------
+  // ---------- NEW: update user profile (used by SidebarProfile) ----------
+  const updateUserProfile = async (updates) => {
+    if (!user) return false;
+    try {
+      const { error } = await supabase
+        .from('user_profiles')
+        .update(updates)
+        .eq('user_id', user.id);
+      if (error) throw error;
+      setUserProfile(prev => ({ ...prev, ...updates }));
+      return true;
+    } catch (err) {
+      console.error('Error updating profile:', err);
+      return false;
+    }
+  };
+
+  // ---------- NEW: regenerate plan after profile changes ----------
+  const regeneratePlan = async () => {
+    if (!user || !userProfile) return false;
+    try {
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userData: userProfile, lang })
+      });
+      const result = await response.json();
+      const planData = JSON.parse(result.plan);
+      const { error } = await supabase.from('weekly_plans').insert({
+        user_id: user.id,
+        week_number: (currentPlan?.week_number || 0) + 1,
+        plan_data: planData
+      });
+      if (error) throw error;
+      setCurrentPlan({ plan_data: planData });
+      return true;
+    } catch (err) {
+      console.error('Regenerate plan error:', err);
+      return false;
+    }
+  };
+
+  // ---------- Utility functions ----------
   const inp = (extra = {}) => ({
     width: "100%", background: "#1E293B", border: `2px solid #334155`, borderRadius: 12,
     padding: "15px 18px", fontSize: 16, color: "#F8FAFC",
@@ -152,7 +195,6 @@ export function AppProvider({ children }) {
   });
 
   const contextValue = {
-    // Core
     lang, setLang,
     screen, setScreen,
     loading, setLoading,
@@ -165,8 +207,9 @@ export function AppProvider({ children }) {
     onboardingStep, setOnboardingStep,
     signInWithGoogle,
     updateProfile,
+    updateUserProfile,
+    regeneratePlan,
     fetchUserProfile, fetchCurrentPlan,
-    // Utility
     inp,
   };
 
