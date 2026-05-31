@@ -23,7 +23,6 @@ serve(async (req) => {
     });
     const data = await resp.json();
     const analysis = data.choices?.[0]?.message?.content || 'تعذر التحليل.';
-    // يمكن استخراج السعرات رقمياً (اختياري)
     const caloriesMatch = analysis.match(/\d+/);
     const calories = caloriesMatch ? parseInt(caloriesMatch[0]) : null;
     return new Response(JSON.stringify({ analysis, mealData: { analysis, calories } }), { headers: { 'Content-Type': 'application/json' } });
