@@ -71,34 +71,36 @@ const SidebarProfile = ({ isOpen, onClose, userProfile, lang, onUpdate }) => {
           <button onClick={onClose} style={{ background: 'transparent', border: 'none', fontSize: '24px', cursor: 'pointer', color: C.muted }}>✕</button>
         </div>
 
-        {/* حقل الاسم الأول */}
         <div style={{ marginBottom: '16px' }}>
           <label style={labelStyle}>{lang === 'ar' ? 'الاسم الأول' : 'First Name'}</label>
           <input type="text" value={formData.first_name} onChange={(e) => handleChange('first_name', e.target.value)} style={inputStyle} />
         </div>
 
-        {/* حقل رقم الواتساب */}
         <div style={{ marginBottom: '16px' }}>
-          <label style={labelStyle}>{lang === 'ar' ? 'رقم الواتساب (دون رمز البلد)' : 'WhatsApp number (no country code)'}</label>
-          <input type="tel" value={formData.whatsapp} onChange={(e) => handleChange('whatsapp', e.target.value)} style={inputStyle} placeholder="50123456" />
+          <label style={labelStyle}>{lang === 'ar' ? 'رقم الواتساب (مثال: +96550123456)' : 'WhatsApp (e.g., +96550123456)'}</label>
+          <input type="tel" value={formData.whatsapp} onChange={(e) => handleChange('whatsapp', e.target.value)} style={inputStyle} />
         </div>
 
         <div style={{ marginBottom: '16px' }}>
           <label style={labelStyle}>{lang === 'ar' ? 'الوزن (كجم)' : 'Weight (kg)'}</label>
           <input type="number" value={formData.current_weight} onChange={(e) => handleChange('current_weight', e.target.value)} style={inputStyle} />
         </div>
+
         <div style={{ marginBottom: '16px' }}>
           <label style={labelStyle}>{lang === 'ar' ? 'الطول (سم)' : 'Height (cm)'}</label>
           <input type="number" value={formData.height} onChange={(e) => handleChange('height', e.target.value)} style={inputStyle} />
         </div>
+
         <div style={{ marginBottom: '16px' }}>
           <label style={labelStyle}>{lang === 'ar' ? 'العمر' : 'Age'}</label>
           <input type="number" value={formData.age} onChange={(e) => handleChange('age', e.target.value)} style={inputStyle} />
         </div>
+
         <div style={{ marginBottom: '16px' }}>
           <label style={labelStyle}>{lang === 'ar' ? 'الوزن المستهدف (كجم)' : 'Target Weight (kg)'}</label>
           <input type="number" value={formData.target_weight} onChange={(e) => handleChange('target_weight', e.target.value)} style={inputStyle} />
         </div>
+
         <div style={{ marginBottom: '16px' }}>
           <label style={labelStyle}>{lang === 'ar' ? 'مستوى النشاط' : 'Activity Level'}</label>
           <select value={formData.activity_level} onChange={(e) => handleChange('activity_level', e.target.value)} style={inputStyle}>
@@ -108,14 +110,17 @@ const SidebarProfile = ({ isOpen, onClose, userProfile, lang, onUpdate }) => {
             <option value="عالي">{lang === 'ar' ? 'عالي' : 'High'}</option>
           </select>
         </div>
+
         <div style={{ marginBottom: '16px' }}>
           <label style={labelStyle}>{lang === 'ar' ? 'الأمراض المزمنة' : 'Chronic Diseases'}</label>
-          <input type="text" value={formData.health_conditions} onChange={(e) => handleChange('health_conditions', e.target.value)} style={inputStyle} placeholder={lang === 'ar' ? 'سكري، ضغط، إلخ' : 'Diabetes, pressure, etc.'} />
+          <input type="text" value={formData.health_conditions} onChange={(e) => handleChange('health_conditions', e.target.value)} style={inputStyle} />
         </div>
+
         <div style={{ marginBottom: '16px' }}>
           <label style={labelStyle}>{lang === 'ar' ? 'البلد' : 'Country'}</label>
           <input type="text" value={formData.country} onChange={(e) => handleChange('country', e.target.value)} style={inputStyle} />
         </div>
+
         <div style={{ marginBottom: '16px' }}>
           <label style={labelStyle}>{lang === 'ar' ? 'النظام الغذائي' : 'Diet Type'}</label>
           <select value={formData.diet_type} onChange={(e) => handleChange('diet_type', e.target.value)} style={inputStyle}>
@@ -125,14 +130,17 @@ const SidebarProfile = ({ isOpen, onClose, userProfile, lang, onUpdate }) => {
             <option value="متوسطي">{lang === 'ar' ? 'متوسطي' : 'Mediterranean'}</option>
           </select>
         </div>
+
         <div style={{ marginBottom: '16px' }}>
           <label style={labelStyle}>{lang === 'ar' ? 'الحساسيات' : 'Allergies'}</label>
-          <input type="text" value={formData.allergies} onChange={(e) => handleChange('allergies', e.target.value)} style={inputStyle} placeholder={lang === 'ar' ? 'لاكتوز، جلوتين، إلخ' : 'Lactose, gluten, etc.'} />
+          <input type="text" value={formData.allergies} onChange={(e) => handleChange('allergies', e.target.value)} style={inputStyle} />
         </div>
+
         <div style={{ marginBottom: '16px' }}>
           <label style={labelStyle}>{lang === 'ar' ? 'الأدوية' : 'Medications'}</label>
-          <input type="text" value={formData.medications} onChange={(e) => handleChange('medications', e.target.value)} style={inputStyle} placeholder={lang === 'ar' ? 'أدوية تؤثر على الوزن' : 'Medications affecting weight'} />
+          <input type="text" value={formData.medications} onChange={(e) => handleChange('medications', e.target.value)} style={inputStyle} />
         </div>
+
         <div style={{ marginBottom: '16px' }}>
           <label style={labelStyle}>{lang === 'ar' ? 'الأكل خارج المنزل (أسبوعياً)' : 'Eating out (per week)'}</label>
           <select value={formData.eating_out} onChange={(e) => handleChange('eating_out', e.target.value)} style={inputStyle}>
