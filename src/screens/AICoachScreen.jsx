@@ -22,7 +22,7 @@ const AICoachScreen = () => {
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  // تعريف خطوات Onboarding مع المفاتيح الصحيحة
+  // تعريف خطوات Onboarding مع إضافة whatsapp
   const steps = [
     { key: 'current_weight', questionAr: 'ما هو وزنك الحالي (كجم)؟', questionEn: 'Current weight (kg)?', type: 'number' },
     { key: 'height', questionAr: 'ما هو طولك (سم)؟', questionEn: 'Height (cm)?', type: 'number' },
@@ -34,6 +34,7 @@ const AICoachScreen = () => {
     { key: 'allergies', questionAr: 'هل تعاني من أي حساسية غذائية؟ (لاكتوز، جلوتين، مكسرات، بيض، بحريات، لا شيء)', questionEn: 'Any food allergies? (lactose, gluten, nuts, eggs, seafood, none)', type: 'text' },
     { key: 'medications', questionAr: 'هل تتناول أدوية تؤثر على الوزن أو الشهية؟ (مثل الكورتيزون، مضادات الاكتئاب، أدوية الغدة، لا شيء)', questionEn: 'Do you take medications that affect weight or appetite? (cortisone, antidepressants, thyroid meds, none)', type: 'text' },
     { key: 'eating_out', questionAr: 'كم مرة تأكل خارج المنزل في الأسبوع؟ (0-1, 2-3, 4-5, أكثر من 5)', questionEn: 'How many times do you eat out per week? (0-1, 2-3, 4-5, more than 5)', type: 'text' },
+    { key: 'whatsapp', questionAr: 'رقم واتسابك (للتواصل والمتابعة):', questionEn: 'Your WhatsApp number:', type: 'text' },
     { key: 'country', questionAr: 'ما هي بلد إقامتك؟', questionEn: 'What is your country?', type: 'text' }
   ];
 
@@ -80,7 +81,8 @@ const AICoachScreen = () => {
           diet_type: 'لا شيء',
           allergies: 'لا شيء',
           medications: 'لا شيء',
-          eating_out: '0-1'
+          eating_out: '0-1',
+          whatsapp: ''
         };
         await supabase.from('user_profiles').insert(defaultProfile);
         setOnboardingStep(0);
@@ -329,6 +331,12 @@ const AICoachScreen = () => {
     }
   };
 
+  // دالة محاكاة الدفع (تفتح نافذة PayPal)
+  const handlePayment = () => {
+    window.open('https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=abuhaa0@gmail.com&amount=2.99&currency_code=USD&item_name=Qoot%20Week%20Subscription', '_blank');
+    // يمكن لاحقاً استبدالها بـ Stripe أو Google Pay
+  };
+
   const weekProgress = currentPlan?.created_at ? {
     weekNumber: currentPlan.week_number || 1,
     currentDay: Math.min(7, Math.floor((Date.now() - new Date(currentPlan.created_at).getTime()) / 86400000) + 1),
@@ -403,6 +411,7 @@ const AICoachScreen = () => {
         lang={lang}
         weekProgress={weekProgress}
         userProfile={userProfile}
+        onPayment={handlePayment}
       />
 
       <SidebarProfile
