@@ -71,11 +71,9 @@ const AICoachScreen = () => {
       if (error && error.code !== 'PGRST116') throw error;
       if (data) {
         setUserProfile(data);
-        // التأكد من أن onboarding_step لا يتجاوز عدد الأسئلة
         const step = data.onboarding_step ?? 0;
         setOnboardingStep(step >= steps.length ? steps.length : step);
       } else {
-        // إنشاء ملف شخصي افتراضي مع جميع الحقول
         const defaultProfile = {
           user_id: user.id,
           onboarding_step: 0,
@@ -124,7 +122,6 @@ const AICoachScreen = () => {
     let stepKey = steps[currentStep].key;
     let processedAnswer = answer.trim();
 
-    // معالجة خاصة للوزن المستهدف
     if (stepKey === 'target_weight' && userProfile?.height) {
       const ideal = getIdealWeight(userProfile.height);
       if (processedAnswer === '' || processedAnswer === 'نعم' || processedAnswer === 'yes' || processedAnswer === 'ok') {
@@ -132,18 +129,18 @@ const AICoachScreen = () => {
       }
     }
 
-    // تحديث الملف الشخصي
     const updates = { [stepKey]: processedAnswer, onboarding_step: currentStep + 1 };
-    const { error } = await supabase
+    const { error, data } = await supabase
       .from('user_profiles')
       .update(updates)
-      .eq('user_id', user.id);
+      .eq('user_id', user.id)
+      .select();
+
     if (error) {
-      console.error('Error saving answer:', error);
-      // عرض خطأ للمستخدم
+      console.error('Supabase update error:', error);
       const errorMsg = {
         role: 'assistant',
-        content: lang === 'ar' ? 'حدث خطأ في حفظ إجابتك، حاول مجدداً.' : 'Error saving your answer, please try again.',
+        content: lang === 'ar' ? `خطأ في حفظ إجابتك: ${error.message}. تأكد من تحديث قاعدة البيانات.` : `Error saving answer: ${error.message}. Please update database.`,
         created_at: new Date().toISOString(),
         user_id: user.id
       };
@@ -151,12 +148,10 @@ const AICoachScreen = () => {
       return false;
     }
 
-    // تحديث الحالة المحلية
     setUserProfile(prev => ({ ...prev, ...updates }));
     const newStep = currentStep + 1;
     setOnboardingStep(newStep);
 
-    // إضافة رسالة المستخدم إلى المحادثة
     const userMsg = {
       role: 'user',
       content: answer,
@@ -165,7 +160,6 @@ const AICoachScreen = () => {
     };
     setMessages(prev => [...prev, userMsg]);
 
-    // إذا اكتمل onboarding، قم بتوليد الخطة
     if (newStep >= steps.length) {
       const loadingMsg = {
         role: 'assistant',
@@ -178,7 +172,6 @@ const AICoachScreen = () => {
       return true;
     }
 
-    // عرض السؤال التالي
     let nextQuestion = '';
     const nextStep = steps[newStep];
     if (nextStep.key === 'target_weight') {
@@ -195,7 +188,6 @@ const AICoachScreen = () => {
     };
     setMessages(prev => [...prev, assistantMsg]);
 
-    // حفظ الرسالتين في قاعدة البيانات
     await supabase.from('conversations').insert([
       { user_id: user.id, role: 'user', content: answer, created_at: new Date().toISOString() },
       { user_id: user.id, role: 'assistant', content: nextQuestion, created_at: new Date().toISOString() }
@@ -206,7 +198,6 @@ const AICoachScreen = () => {
 
   const generatePlan = async () => {
     try {
-      // جلب أحدث بيانات الملف الشخصي (تأكد من وجود جميع الحقول)
       const { data: profile } = await supabase
         .from('user_profiles')
         .select('*')
@@ -355,7 +346,6 @@ const AICoachScreen = () => {
 
   return (
     <div style={{ minHeight: '100vh', background: C.bg, display: 'flex', flexDirection: 'column' }}>
-      {/* Header ثابت (sticky) */}
       <div style={{
         position: 'sticky',
         top: 0,
@@ -375,14 +365,12 @@ const AICoachScreen = () => {
         <div style={{ width: '24px' }} />
       </div>
 
-      {/* منطقة المحادثة */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '16px 0' }}>
         {messages.map((msg, idx) => <ChatMessage key={idx} message={msg} lang={lang} />)}
         {isLoading && <div style={{ padding: '12px 16px', textAlign: 'center', color: C.muted }}>{lang === 'ar' ? 'يجيب...' : 'Thinking...'}</div>}
         <div ref={messagesEndRef} />
       </div>
 
-      {/* معاينة الصورة */}
       {imagePreview && (
         <div style={{ padding: '8px 16px', background: C.cardLight, display: 'flex', alignItems: 'center', gap: '8px' }}>
           <img src={imagePreview} alt="preview" style={{ width: '60px', height: '60px', borderRadius: '8px', objectFit: 'cover' }} />
@@ -391,7 +379,6 @@ const AICoachScreen = () => {
         </div>
       )}
 
-      {/* حقل الإدخال */}
       <div style={{ padding: '16px', borderTop: `1px solid ${C.border}`, background: C.bg }}>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           <input
@@ -408,7 +395,6 @@ const AICoachScreen = () => {
         </div>
       </div>
 
-      {/* سايدبار الخطة (يمين) */}
       <SidebarPlan
         isOpen={showPlanSidebar}
         onClose={() => setShowPlanSidebar(false)}
@@ -419,7 +405,6 @@ const AICoachScreen = () => {
         userProfile={userProfile}
       />
 
-      {/* سايدبار الملف الشخصي (يسار) */}
       <SidebarProfile
         isOpen={showProfileSidebar}
         onClose={() => setShowProfileSidebar(false)}
