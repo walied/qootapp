@@ -22,7 +22,6 @@ const AICoachScreen = () => {
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  // تعريف خطوات Onboarding مع إضافة whatsapp
   const steps = [
     { key: 'current_weight', questionAr: 'ما هو وزنك الحالي (كجم)؟', questionEn: 'Current weight (kg)?', type: 'number' },
     { key: 'height', questionAr: 'ما هو طولك (سم)؟', questionEn: 'Height (cm)?', type: 'number' },
@@ -72,8 +71,7 @@ const AICoachScreen = () => {
       if (error && error.code !== 'PGRST116') throw error;
       if (data) {
         setUserProfile(data);
-        const step = data.onboarding_step ?? 0;
-        setOnboardingStep(step >= steps.length ? steps.length : step);
+        setOnboardingStep(data.onboarding_step ?? 0);
       } else {
         const defaultProfile = {
           user_id: user.id,
@@ -407,7 +405,6 @@ const AICoachScreen = () => {
         userMetrics={userMetrics}
         lang={lang}
         weekProgress={weekProgress}
-        userProfile={userProfile}
         onPayment={handlePayment}
       />
 
