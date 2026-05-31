@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { C } from '../constants';
 
-const SidebarPlan = ({ isOpen, onClose, plan, userMetrics, lang, weekProgress, userProfile }) => {
+const SidebarPlan = ({ isOpen, onClose, plan, userMetrics, lang, weekProgress, userProfile, onPayment }) => {
   const [currentDayIndex, setCurrentDayIndex] = useState(weekProgress ? weekProgress.currentDay - 1 : 0);
   const daysInWeek = 7;
 
@@ -14,6 +14,7 @@ const SidebarPlan = ({ isOpen, onClose, plan, userMetrics, lang, weekProgress, u
   const currentDayPlan = plan?.plan_data?.weekly_plan?.[currentDayIndex];
   const currentDayName = currentDayPlan?.day || (lang === 'ar' ? `اليوم ${currentDayIndex + 1}` : `Day ${currentDayIndex + 1}`);
 
+  // دالة عرض الوجبة مع توحيد لون "أو"
   const renderMeal = (mealData, mealLabel) => {
     if (!mealData || !mealData.options) return null;
     const options = Array.isArray(mealData.options) ? mealData.options : [mealData.options];
@@ -24,7 +25,9 @@ const SidebarPlan = ({ isOpen, onClose, plan, userMetrics, lang, weekProgress, u
         {options.map((opt, idx) => (
           <div key={idx} style={{ fontSize: '14px', color: C.text, marginBottom: '4px' }}>
             {opt}
-            {idx < options.length - 1 && <span style={{ color: C.amber, marginLeft: '4px', marginRight: '4px' }}> أو </span>}
+            {idx < options.length - 1 && (
+              <span style={{ color: C.amber, marginLeft: '4px', marginRight: '4px', fontWeight: 'bold' }}> أو </span>
+            )}
           </div>
         ))}
         {mealData.macros && (
@@ -63,6 +66,7 @@ const SidebarPlan = ({ isOpen, onClose, plan, userMetrics, lang, weekProgress, u
           <button onClick={onClose} style={{ background: 'transparent', border: 'none', fontSize: '24px', cursor: 'pointer', color: C.muted }}>✕</button>
         </div>
 
+        {/* Gamification */}
         <div style={{ background: C.card, borderRadius: '12px', padding: '16px', marginBottom: '20px' }}>
           <div style={{ marginBottom: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
@@ -79,6 +83,7 @@ const SidebarPlan = ({ isOpen, onClose, plan, userMetrics, lang, weekProgress, u
           </div>
         </div>
 
+        {/* Week Progress */}
         {weekProgress && (
           <div style={{ background: C.card, borderRadius: '12px', padding: '16px', marginBottom: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -97,6 +102,7 @@ const SidebarPlan = ({ isOpen, onClose, plan, userMetrics, lang, weekProgress, u
           </div>
         )}
 
+        {/* Today's Plan */}
         {currentDayPlan ? (
           <div>
             <h3 style={{ fontSize: '16px', fontWeight: '600', color: C.text, marginBottom: '16px' }}>{currentDayName}</h3>
@@ -119,6 +125,40 @@ const SidebarPlan = ({ isOpen, onClose, plan, userMetrics, lang, weekProgress, u
                 ))}
               </div>
             )}
+
+            {/* زر الدفع (محاكاة) */}
+            <div style={{ marginTop: '24px', padding: '16px', background: C.card, borderRadius: '12px', border: `1px solid ${C.border}` }}>
+              <div style={{ fontSize: '14px', fontWeight: '600', color: C.text, marginBottom: '8px' }}>
+                {lang === 'ar' ? '💳 الاشتراك الأسبوعي' : '💳 Weekly Subscription'}
+              </div>
+              <div style={{ fontSize: '24px', fontWeight: '700', color: C.teal, marginBottom: '12px' }}>
+                $2.99 / {lang === 'ar' ? 'أسبوع' : 'week'}
+              </div>
+              <button
+                onClick={onPayment}
+                style={{
+                  width: '100%',
+                  background: `linear-gradient(135deg, #003087, #009cde)`,
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '12px',
+                  padding: '12px',
+                  fontSize: '16px',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
+                }}
+              >
+                <span>🅿️</span>
+                <span>{lang === 'ar' ? 'ادفع عبر PayPal' : 'Pay with PayPal'}</span>
+              </button>
+              <p style={{ fontSize: '11px', color: C.muted, textAlign: 'center', marginTop: '8px' }}>
+                {lang === 'ar' ? 'دفع آمن · إلغاء في أي وقت' : 'Secure payment · Cancel anytime'}
+              </p>
+            </div>
           </div>
         ) : (
           <div style={{ textAlign: 'center', color: C.muted, padding: '20px' }}>{lang === 'ar' ? 'لا توجد خطة بعد' : 'No plan yet'}</div>
