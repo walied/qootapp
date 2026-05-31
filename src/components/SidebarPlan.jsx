@@ -14,30 +14,27 @@ const SidebarPlan = ({ isOpen, onClose, plan, userMetrics, lang, weekProgress, u
   const currentDayPlan = plan?.plan_data?.weekly_plan?.[currentDayIndex];
   const currentDayName = currentDayPlan?.day || (lang === 'ar' ? `اليوم ${currentDayIndex + 1}` : `Day ${currentDayIndex + 1}`);
 
-  // دالة تنظيف الخيارات من كلمة "أو" الزائدة
+  // تنظيف الخيارات من كلمة "أو" الزائدة
   const cleanOptions = (options) => {
     if (!options) return [];
     let opts = Array.isArray(options) ? options : [options];
-    // إزالة أي عنصر هو "أو" (نص خالص) أو يحتوي على "أو" ككلمة منفصلة
+    // إزالة العناصر التي هي "أو" فقط
     opts = opts.filter(opt => {
       if (typeof opt !== 'string') return true;
       const trimmed = opt.trim();
-      // إذا كان الخيار هو "أو" فقط، احذفه
-      if (trimmed === 'أو' || trimmed === 'or') return false;
-      return true;
+      return trimmed !== 'أو' && trimmed !== 'or';
     });
-    // تنظيف بداية ونهاية كل خيار من "أو"
+    // إزالة "أو" من بداية أو نهاية النص
     opts = opts.map(opt => {
       if (typeof opt !== 'string') return opt;
       return opt.replace(/^أو\s*/i, '').replace(/\s*أو$/i, '').trim();
     });
-    // إزالة الخيارات الفارغة
     return opts.filter(opt => opt && opt !== '');
   };
 
   const renderMeal = (mealData, mealLabel) => {
     if (!mealData) return null;
-    let options = cleanOptions(mealData.options);
+    const options = cleanOptions(mealData.options);
     if (options.length === 0) return null;
 
     return (
@@ -66,9 +63,7 @@ const SidebarPlan = ({ isOpen, onClose, plan, userMetrics, lang, weekProgress, u
     if (currentDayIndex < daysInWeek - 1) setCurrentDayIndex(currentDayIndex + 1);
   };
 
-  // الحصول على التمرين لهذا اليوم (إذا كان موجوداً في الخطة)
   const workout = currentDayPlan?.workout || (plan?.plan_data?.home_workout ? (typeof plan.plan_data.home_workout === 'string' ? plan.plan_data.home_workout : '') : '');
-  // الحصول على النصائح العامة (من plan_data.tips)
   const tips = plan?.plan_data?.tips || [];
 
   return (
@@ -137,7 +132,6 @@ const SidebarPlan = ({ isOpen, onClose, plan, userMetrics, lang, weekProgress, u
             {renderMeal(currentDayPlan.dinner, lang === 'ar' ? 'عشاء' : 'Dinner')}
             {renderMeal(currentDayPlan.snack, lang === 'ar' ? 'سناك' : 'Snack')}
 
-            {/* Workout section */}
             {workout && (
               <div style={{ marginTop: '16px', background: C.cardLight, borderRadius: '12px', padding: '12px' }}>
                 <div style={{ fontSize: '14px', fontWeight: '600', color: C.teal, marginBottom: '8px' }}>🏋️ {lang === 'ar' ? 'تمارين اليوم' : 'Today\'s Exercise'}</div>
@@ -145,7 +139,6 @@ const SidebarPlan = ({ isOpen, onClose, plan, userMetrics, lang, weekProgress, u
               </div>
             )}
 
-            {/* Tips section */}
             {tips.length > 0 && (
               <div style={{ marginTop: '16px', background: C.cardLight, borderRadius: '12px', padding: '12px' }}>
                 <div style={{ fontSize: '14px', fontWeight: '600', color: C.teal, marginBottom: '8px' }}>💡 {lang === 'ar' ? 'نصائح اليوم' : 'Today\'s Tips'}</div>
@@ -155,7 +148,6 @@ const SidebarPlan = ({ isOpen, onClose, plan, userMetrics, lang, weekProgress, u
               </div>
             )}
 
-            {/* Payment button */}
             <div style={{ marginTop: '24px', padding: '16px', background: C.card, borderRadius: '12px', border: `1px solid ${C.border}` }}>
               <div style={{ fontSize: '14px', fontWeight: '600', color: C.text, marginBottom: '8px' }}>
                 {lang === 'ar' ? '💳 الاشتراك الأسبوعي' : '💳 Weekly Subscription'}
