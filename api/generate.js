@@ -8,7 +8,7 @@ export default async function handler(req, res) {
     const country = userData.country || 'الدولة';
     const whatsappLink = "https://wa.me/96598002104";
 
-    // Calculate health metrics (same as before)
+    // حساب المعايير الصحية
     const weight = parseFloat(userData.current_weight) || 80;
     const height = parseFloat(userData.height) || 170;
     const age = parseInt(userData.age) || 30;
@@ -25,14 +25,14 @@ export default async function handler(req, res) {
     let weightToLose = userData.current_weight && userData.target_weight ? Math.max(1, Math.round(userData.current_weight - userData.target_weight)) : 10;
     let weeks = Math.ceil(weightToLose / 0.5);
 
-    // Extract additional optional data
+    // بيانات إضافية اختيارية (لنستخدمها لاحقاً)
     const sleep = userData.sleep_hours || (lang === 'ar' ? 'غير محدد' : 'not specified');
     const smoking = userData.smoking || (lang === 'ar' ? 'لا' : 'No');
     const stress = userData.stress_level || (lang === 'ar' ? 'غير محدد' : 'not specified');
     const cookingTime = userData.cooking_time || (lang === 'ar' ? 'غير محدد' : 'not specified');
     const previousSurgeries = userData.previous_surgeries || (lang === 'ar' ? 'لا توجد' : 'None');
 
-    // The exact welcome message (Arabic)
+    // الرسالة الترحيبية الطويلة
     const exactWelcomeAr = `✦ خطتك أصبحت جاهزة ✦
 
 مرحباً ${userData.first_name || ''}،
@@ -73,12 +73,12 @@ Great results start with small consistent steps, and we will be with you every s
 For direct contact with the specialist and personal follow-up:
 ${whatsappLink}`;
 
-    // SYSTEM PROMPT (Arabic) – forces exact welcome message and detailed meals with weights
-    const sysPromptAr = `أنت أخصائي تغذية. أعد JSON بالهيكل التالي بدقة. استخدم المفاتيح الإنجليزية فقط. كل يوم يحتوي على 4 وجبات (breakfast, lunch, dinner, snack)، كل وجبة تقدم 2-3 خيارات بديلة. لكل خيار، اكتب المكونات التفصيلية مع الأوزان بالجرام (مثال: "150g أرز مصري مطبوخ، 100g صدر دجاج مشوي، 50g خضار مسلوقة"). أضف حقلاً "macros" يحتوي على البروتين والكربوهيدرات والدهون بالجرام. أضف لكل يوم "workout" (تمرين منزلي مفصل) و"exercise_time" (يحدد الوقت الأفضل بناءً على بيانات المستخدم: "بعد الفطار" أو "بعد الغداء" أو "بعد العشاء" أو "في أي وقت").
+    // SYSTEM PROMPT (عربي) – معدل ليكون عاماً ولا يذكر "أرز مصري"
+    const sysPromptAr = `أنت أخصائي تغذية. أعد JSON بالهيكل التالي بدقة. استخدم المفاتيح الإنجليزية فقط. كل يوم يحتوي على 4 وجبات (breakfast, lunch, dinner, snack)، كل وجبة تقدم 2-3 خيارات بديلة. لكل خيار، اكتب المكونات التفصيلية مع الأوزان بالجرام. أضف حقلاً "macros" يحتوي على البروتين والكربوهيدرات والدهون بالجرام. أضف لكل يوم "workout" (تمرين منزلي مفصل) و"exercise_time" (يحدد الوقت الأفضل بناءً على بيانات المستخدم: "بعد الفطار" أو "بعد الغداء" أو "بعد العشاء" أو "في أي وقت").
 
 🚨 القواعد الإلزامية:
-- جميع المكونات يجب أن تكون أرخص وأكثر المكونات توفراً في بلد المستخدم (${country}).
-- يمنع استخدام مكونات مستوردة أو غالية (كينوا، بذور شيا، أفوكادو، لوز، أرز بسمتي إلا إذا كان رخيصاً محلياً).
+- جميع المكونات يجب أن تكون أرخص وأكثر المكونات توفراً في بلد المستخدم (${country}). 
+- يمنع استخدام مكونات مستوردة أو غالية (كينوا، بذور شيا، أفوكادو، لوز، أرز بسمتي إلا إذا كان رخيصاً محلياً). استخدم بدائل محلية مثل الأرز العادي، الخبز المحلي، الدجاج، البيض، الخضروات الموسمية.
 - كل وصفة يجب أن تحتوي على وزن تقريبي بالجرام.
 - النصائح (tips) 5 نصائح، أولها "🍽️ تناول 4 وجبات صغيرة يومياً بدلاً من وجبتين كبيرتين."
 
@@ -108,12 +108,12 @@ ${exactWelcomeAr}
   "specialist_notes": ""
 }`;
 
-    // Similarly for English (shortened for brevity, but similar structure)
-    const sysPromptEn = `You are a nutritionist. Output strict JSON with the structure below. Use English keys only. Each day has 4 meals (breakfast, lunch, dinner, snack) with 2-3 options each. For each option, include detailed ingredients with grams (e.g., "150g local cooked rice, 100g grilled chicken breast, 50g boiled vegetables"). Add a "macros" field with protein, carbs, fats in grams. Add a "workout" (detailed home exercise) and "exercise_time" (best time based on user data: "after breakfast", "after lunch", "after dinner", "anytime").
+    // SYSTEM PROMPT (English) – similarly general
+    const sysPromptEn = `You are a nutritionist. Output strict JSON with the structure below. Use English keys only. Each day has 4 meals (breakfast, lunch, dinner, snack) with 2-3 options each. For each option, include detailed ingredients with grams. Add a "macros" field with protein, carbs, fats in grams. Add a "workout" (detailed home exercise) and "exercise_time" (best time based on user data: "after breakfast", "after lunch", "after dinner", "anytime").
 
 Mandatory rules:
 - All ingredients must be the cheapest and most available in the user's country (${country}).
-- No imported/expensive items (quinoa, chia seeds, avocado, almonds, basmati rice unless locally cheap).
+- No imported/expensive items (quinoa, chia seeds, avocado, almonds, basmati rice unless locally cheap). Use local alternatives: regular rice, local bread, chicken, eggs, seasonal vegetables.
 - Each recipe must include approximate weights in grams.
 - Tips (5 tips), first tip: "🍽️ Eat 4 small meals daily instead of 2 large ones."
 
@@ -159,15 +159,34 @@ JSON structure as above (similar to Arabic).`;
   }
 }
 
-// Helper functions (extractJSON, generateFallbackPlan, generateWorkout, etc.) - keep existing robust ones
-function extractJSON(raw) { /* same as before */ }
+// Helper functions (simplified but complete)
+function extractJSON(raw) {
+  let cleaned = raw.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+  const firstBrace = cleaned.indexOf('{');
+  const lastBrace = cleaned.lastIndexOf('}');
+  if (firstBrace === -1 || lastBrace === -1) return null;
+  cleaned = cleaned.substring(firstBrace, lastBrace + 1);
+  cleaned = cleaned.replace(/,\s*}/g, '}').replace(/,\s*\]/g, ']');
+  try { return JSON.parse(cleaned); } catch (e) {
+    const opens = [];
+    for (const ch of cleaned) {
+      if (ch === '{') opens.push('}');
+      else if (ch === '[') opens.push(']');
+      else if (ch === '}' || ch === ']') opens.pop();
+    }
+    cleaned += opens.reverse().join('');
+    const quoteCount = (cleaned.match(/(?<!\\)"/g) || []).length;
+    if (quoteCount % 2 !== 0) cleaned += '"';
+    try { return JSON.parse(cleaned); } catch (e2) { return null; }
+  }
+}
+
 function generateFallbackPlan(lang, userData, targetCalories, weightToLose, weeks, whatsappLink, exactWelcomeAr, exactWelcomeEn) {
-  // Return a structured plan with exact welcome message and detailed meals
   const days = lang === 'ar' ? ['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'] : ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   const weeklyPlan = days.map((day, i) => ({
     day: day,
     breakfast: { options: ['بيض مسلوق (2 بيضة) + خبز أسمر (50g) + خيار (50g)', 'شوفان (40g) مع حليب (200ml) وموزة (100g)'], macros: 'بروتين: 20g | كارب: 35g | دهون: 12g' },
-    lunch: { options: ['دجاج مشوي (150g) + أرز مصري مطبوخ (200g) + سلطة خضراء (100g)', 'عدس (100g) + أرز (150g) + خضار مسلوقة (100g)'], macros: 'بروتين: 30g | كارب: 50g | دهون: 15g' },
+    lunch: { options: ['دجاج مشوي (150g) + أرز عادي مطبوخ (200g) + سلطة خضراء (100g)', 'عدس (100g) + أرز (150g) + خضار مسلوقة (100g)'], macros: 'بروتين: 30g | كارب: 50g | دهون: 15g' },
     dinner: { options: ['زبادي (200g) + خيار (100g) + خبز أسمر (50g)', 'جبنة قريش (150g) + طماطم (100g)'], macros: 'بروتين: 20g | كارب: 20g | دهون: 8g' },
     snack: { options: ['تفاحة (150g)', 'موزة (120g)', 'حفنة فول سوداني (30g)'], macros: 'بروتين: 5g | كارب: 20g | دهون: 5g' },
     workout: generateWorkout(lang, i),
@@ -184,5 +203,47 @@ function generateFallbackPlan(lang, userData, targetCalories, weightToLose, week
     specialist_notes: ''
   };
 }
-function generateWorkout(lang, dayIndex) { /* return varied workout */ }
-function generateTips(lang, userData) { /* tips including 4 meals line */ }
+
+function generateWorkout(lang, dayIndex) {
+  const workoutsAr = [
+    'تمرين خفيف: مشي سريع 20 دقيقة + تمارين إطالة',
+    'تمارين منزلية: ضغط (3×10)، قرفصاء (3×15)، بلانك (3×30 ثانية)',
+    'كارديو: قفز بالحبل 15 دقيقة + تمارين بطن',
+    'يوغا أو تمدد عميق 20 دقيقة',
+    'تمارين مقاومة باستخدام زجاجات ماء (3×15)، رفع ساقين (3×20)',
+    'تمارين كارديو منزلية: قفز النجم، ركض في المكان (15 دقيقة)',
+    'تمارين شاملة: ضغط، قرفصاء، بلانك، كارديو خفيف (20 دقيقة)'
+  ];
+  const workoutsEn = [
+    'Light exercise: 20 min brisk walk + stretching',
+    'Home workout: push-ups 3x10, squats 3x15, plank 30s',
+    'Cardio: 15 min jump rope + abs',
+    'Yoga/deep stretch 20 min',
+    'Resistance with water bottles 3x15, leg raises 3x20',
+    'Home cardio: star jumps, jog in place 15 min',
+    'Full workout: push-ups, squats, plank, light cardio 20 min'
+  ];
+  const idx = dayIndex % workoutsAr.length;
+  return lang === 'ar' ? workoutsAr[idx] : workoutsEn[idx];
+}
+
+function generateTips(lang, userData) {
+  const conditions = userData.health_conditions?.join?.(',') || '';
+  if (lang === 'ar') {
+    return [
+      '🍽️ تناول 4 وجبات صغيرة يومياً بدلاً من وجبتين كبيرتين.',
+      '💧 اشرب كوباً من الماء قبل كل وجبة بـ 10 دقائق.',
+      conditions.includes('سكري') ? '🥗 تجنب الفواكه عالية السكر واستبدلها بالخيار أو الخس.' : '🍎 تناول الفواكه الكاملة بدلاً من العصائر.',
+      '🍽️ استخدم طبقاً أصغر للتحكم في كمية الطعام.',
+      '🚶 قم بالمشي 10 دقائق بعد كل وجبة.'
+    ];
+  } else {
+    return [
+      '🍽️ Eat 4 small meals daily instead of 2 large ones.',
+      '💧 Drink a glass of water 10 minutes before each meal.',
+      conditions.includes('Diabetes') ? '🥗 Avoid high-sugar fruits; replace with cucumber or lettuce.' : '🍎 Eat whole fruits instead of juices.',
+      '🍽️ Use a smaller plate to control portions.',
+      '🚶 Walk 10 minutes after each meal.'
+    ];
+  }
+}
