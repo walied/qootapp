@@ -11,16 +11,13 @@ const SidebarPlan = ({ isOpen, onClose, plan, userMetrics, lang, weekProgress, u
   const level = userMetrics?.level || 1;
   const xpProgress = (xp % 1000) / 10;
 
-  // بيانات اليوم الحالي
   const currentDayPlan = plan?.plan_data?.weekly_plan?.[currentDayIndex];
   const currentDayName = currentDayPlan?.day || (lang === 'ar' ? `اليوم ${currentDayIndex + 1}` : `Day ${currentDayIndex + 1}`);
 
-  // دالة عرض الوجبة مع 3 خيارات مفصولة بـ "أو"
   const renderMeal = (mealData, mealLabel) => {
     if (!mealData || !mealData.options) return null;
     const options = Array.isArray(mealData.options) ? mealData.options : [mealData.options];
     if (options.length === 0) return null;
-    // نريد عرض كل خيار في سطر مع كلمة "أو" بينهم
     return (
       <div style={{ marginBottom: '12px' }}>
         <div style={{ fontSize: '12px', color: C.muted, marginBottom: '4px' }}>{mealLabel}</div>
@@ -66,7 +63,6 @@ const SidebarPlan = ({ isOpen, onClose, plan, userMetrics, lang, weekProgress, u
           <button onClick={onClose} style={{ background: 'transparent', border: 'none', fontSize: '24px', cursor: 'pointer', color: C.muted }}>✕</button>
         </div>
 
-        {/* Gamification */}
         <div style={{ background: C.card, borderRadius: '12px', padding: '16px', marginBottom: '20px' }}>
           <div style={{ marginBottom: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
@@ -83,7 +79,6 @@ const SidebarPlan = ({ isOpen, onClose, plan, userMetrics, lang, weekProgress, u
           </div>
         </div>
 
-        {/* Week Progress */}
         {weekProgress && (
           <div style={{ background: C.card, borderRadius: '12px', padding: '16px', marginBottom: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -102,7 +97,6 @@ const SidebarPlan = ({ isOpen, onClose, plan, userMetrics, lang, weekProgress, u
           </div>
         )}
 
-        {/* Today's Plan */}
         {currentDayPlan ? (
           <div>
             <h3 style={{ fontSize: '16px', fontWeight: '600', color: C.text, marginBottom: '16px' }}>{currentDayName}</h3>
@@ -111,7 +105,6 @@ const SidebarPlan = ({ isOpen, onClose, plan, userMetrics, lang, weekProgress, u
             {renderMeal(currentDayPlan.dinner, lang === 'ar' ? 'عشاء' : 'Dinner')}
             {renderMeal(currentDayPlan.snack, lang === 'ar' ? 'سناك' : 'Snack')}
 
-            {/* Workout and Tips */}
             {currentDayPlan.workout && (
               <div style={{ marginTop: '16px', background: C.cardLight, borderRadius: '12px', padding: '12px' }}>
                 <div style={{ fontSize: '14px', fontWeight: '600', color: C.teal, marginBottom: '8px' }}>🏋️ {lang === 'ar' ? 'تمارين اليوم' : 'Today\'s Exercise'}</div>
