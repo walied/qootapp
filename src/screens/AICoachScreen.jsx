@@ -22,15 +22,14 @@ const AICoachScreen = () => {
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  // تعريف خطوات Onboarding (مع إضافة أسئلة جديدة)
+  // تعريف خطوات Onboarding مع المفاتيح الصحيحة
   const steps = [
     { key: 'current_weight', questionAr: 'ما هو وزنك الحالي (كجم)؟', questionEn: 'Current weight (kg)?', type: 'number' },
     { key: 'height', questionAr: 'ما هو طولك (سم)؟', questionEn: 'Height (cm)?', type: 'number' },
     { key: 'age', questionAr: 'كم عمرك؟', questionEn: 'Age?', type: 'number' },
-    { key: 'target_weight', questionAr: '', questionEn: '', type: 'target_suggestion' }, // سيتم توليدها ديناميكياً
+    { key: 'target_weight', questionAr: '', questionEn: '', type: 'target_suggestion' },
     { key: 'activity_level', questionAr: 'مستوى نشاطك؟ (قليل/متوسط/عالي)', questionEn: 'Activity level? (low/medium/high)', type: 'text' },
     { key: 'health_conditions', questionAr: 'هل تعاني من أي أمراض مزمنة؟ (سكري، ضغط، غدة، كلى، كبد...)', questionEn: 'Any chronic diseases? (diabetes, pressure, thyroid, kidney, liver...)', type: 'text' },
-    // الأسئلة الإضافية الجديدة (تخصيص أفضل)
     { key: 'diet_type', questionAr: 'هل تتبع أي نظام غذائي معين؟ (نباتي، كيتو، متوسطي، لا شيء)', questionEn: 'Do you follow a specific diet? (vegetarian, keto, mediterranean, none)', type: 'text' },
     { key: 'allergies', questionAr: 'هل تعاني من أي حساسية غذائية؟ (لاكتوز، جلوتين، مكسرات، بيض، بحريات، لا شيء)', questionEn: 'Any food allergies? (lactose, gluten, nuts, eggs, seafood, none)', type: 'text' },
     { key: 'medications', questionAr: 'هل تتناول أدوية تؤثر على الوزن أو الشهية؟ (مثل الكورتيزون، مضادات الاكتئاب، أدوية الغدة، لا شيء)', questionEn: 'Do you take medications that affect weight or appetite? (cortisone, antidepressants, thyroid meds, none)', type: 'text' },
@@ -72,9 +71,11 @@ const AICoachScreen = () => {
       if (error && error.code !== 'PGRST116') throw error;
       if (data) {
         setUserProfile(data);
-        setOnboardingStep(data.onboarding_step ?? 0);
+        // التأكد من أن onboarding_step لا يتجاوز عدد الأسئلة
+        const step = data.onboarding_step ?? 0;
+        setOnboardingStep(step >= steps.length ? steps.length : step);
       } else {
-        // إنشاء ملف شخصي افتراضي مع الأسئلة الجديدة
+        // إنشاء ملف شخصي افتراضي مع جميع الحقول
         const defaultProfile = {
           user_id: user.id,
           onboarding_step: 0,
@@ -123,7 +124,7 @@ const AICoachScreen = () => {
     let stepKey = steps[currentStep].key;
     let processedAnswer = answer.trim();
 
-    // معالجة الوزن المستهدف
+    // معالجة خاصة للوزن المستهدف
     if (stepKey === 'target_weight' && userProfile?.height) {
       const ideal = getIdealWeight(userProfile.height);
       if (processedAnswer === '' || processedAnswer === 'نعم' || processedAnswer === 'yes' || processedAnswer === 'ok') {
@@ -139,11 +140,21 @@ const AICoachScreen = () => {
       .eq('user_id', user.id);
     if (error) {
       console.error('Error saving answer:', error);
+      // عرض خطأ للمستخدم
+      const errorMsg = {
+        role: 'assistant',
+        content: lang === 'ar' ? 'حدث خطأ في حفظ إجابتك، حاول مجدداً.' : 'Error saving your answer, please try again.',
+        created_at: new Date().toISOString(),
+        user_id: user.id
+      };
+      setMessages(prev => [...prev, errorMsg]);
       return false;
     }
 
+    // تحديث الحالة المحلية
     setUserProfile(prev => ({ ...prev, ...updates }));
-    setOnboardingStep(currentStep + 1);
+    const newStep = currentStep + 1;
+    setOnboardingStep(newStep);
 
     // إضافة رسالة المستخدم إلى المحادثة
     const userMsg = {
@@ -155,7 +166,7 @@ const AICoachScreen = () => {
     setMessages(prev => [...prev, userMsg]);
 
     // إذا اكتمل onboarding، قم بتوليد الخطة
-    if (currentStep + 1 >= steps.length) {
+    if (newStep >= steps.length) {
       const loadingMsg = {
         role: 'assistant',
         content: lang === 'ar' ? 'جاري تجهيز خطتك الغذائية... يرجى الانتظار قليلاً.' : 'Preparing your meal plan... Please wait.',
@@ -169,7 +180,7 @@ const AICoachScreen = () => {
 
     // عرض السؤال التالي
     let nextQuestion = '';
-    const nextStep = steps[currentStep + 1];
+    const nextStep = steps[newStep];
     if (nextStep.key === 'target_weight') {
       nextQuestion = getTargetWeightQuestion();
     } else {
@@ -184,7 +195,7 @@ const AICoachScreen = () => {
     };
     setMessages(prev => [...prev, assistantMsg]);
 
-    // حفظ الرسالتين
+    // حفظ الرسالتين في قاعدة البيانات
     await supabase.from('conversations').insert([
       { user_id: user.id, role: 'user', content: answer, created_at: new Date().toISOString() },
       { user_id: user.id, role: 'assistant', content: nextQuestion, created_at: new Date().toISOString() }
@@ -195,6 +206,7 @@ const AICoachScreen = () => {
 
   const generatePlan = async () => {
     try {
+      // جلب أحدث بيانات الملف الشخصي (تأكد من وجود جميع الحقول)
       const { data: profile } = await supabase
         .from('user_profiles')
         .select('*')
@@ -268,7 +280,6 @@ const AICoachScreen = () => {
         user_id: user.id
       };
       setMessages(prev => [...prev, aiMessage]);
-      // لا نحفظ هنا لأن Edge Function تحفظ كلا الطرفين
     } catch (err) {
       console.error('sendNormalMessage error:', err);
       const errorReply = {
