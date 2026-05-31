@@ -3,37 +3,39 @@ import { useApp } from '../context/AppContext';
 import { supabase } from '../lib/supabaseClient';
 import ChatMessage from '../components/ChatMessage';
 import SidebarPlan from '../components/SidebarPlan';
+import SidebarProfile from '../components/SidebarProfile';
 import { C } from '../constants';
 
 const AICoachScreen = () => {
   const {
     lang, user, messages, setMessages, currentPlan, setCurrentPlan,
     userProfile, setUserProfile, userMetrics, setUserMetrics,
-    onboardingStep, setOnboardingStep, updateProfile
+    onboardingStep, setOnboardingStep, updateUserProfile, regeneratePlan
   } = useApp();
 
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showPlanSidebar, setShowPlanSidebar] = useState(false);
+  const [showProfileSidebar, setShowProfileSidebar] = useState(false);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  // تعريف الأسئلة مع دعم الوزن المستهدف الذكي
+  // تعريف خطوات Onboarding (مع إضافة أسئلة جديدة)
   const steps = [
     { key: 'current_weight', questionAr: 'ما هو وزنك الحالي (كجم)؟', questionEn: 'Current weight (kg)?', type: 'number' },
     { key: 'height', questionAr: 'ما هو طولك (سم)؟', questionEn: 'Height (cm)?', type: 'number' },
     { key: 'age', questionAr: 'كم عمرك؟', questionEn: 'Age?', type: 'number' },
-    { 
-      key: 'target_weight', 
-      questionAr: '', // سيتم توليدها ديناميكياً بعد معرفة الطول
-      questionEn: '',
-      type: 'target_suggestion'
-    },
+    { key: 'target_weight', questionAr: '', questionEn: '', type: 'target_suggestion' }, // سيتم توليدها ديناميكياً
     { key: 'activity_level', questionAr: 'مستوى نشاطك؟ (قليل/متوسط/عالي)', questionEn: 'Activity level? (low/medium/high)', type: 'text' },
-    { key: 'health_conditions', questionAr: 'هل تعاني من أي أمراض مزمنة؟ (سكري، ضغط، غدة...)', questionEn: 'Any chronic diseases?', type: 'text' },
-    { key: 'country', questionAr: 'ما هي بلد إقامتك؟', questionEn: 'Country?', type: 'text' }
+    { key: 'health_conditions', questionAr: 'هل تعاني من أي أمراض مزمنة؟ (سكري، ضغط، غدة، كلى، كبد...)', questionEn: 'Any chronic diseases? (diabetes, pressure, thyroid, kidney, liver...)', type: 'text' },
+    // الأسئلة الإضافية الجديدة (تخصيص أفضل)
+    { key: 'diet_type', questionAr: 'هل تتبع أي نظام غذائي معين؟ (نباتي، كيتو، متوسطي، لا شيء)', questionEn: 'Do you follow a specific diet? (vegetarian, keto, mediterranean, none)', type: 'text' },
+    { key: 'allergies', questionAr: 'هل تعاني من أي حساسية غذائية؟ (لاكتوز، جلوتين، مكسرات، بيض، بحريات، لا شيء)', questionEn: 'Any food allergies? (lactose, gluten, nuts, eggs, seafood, none)', type: 'text' },
+    { key: 'medications', questionAr: 'هل تتناول أدوية تؤثر على الوزن أو الشهية؟ (مثل الكورتيزون، مضادات الاكتئاب، أدوية الغدة، لا شيء)', questionEn: 'Do you take medications that affect weight or appetite? (cortisone, antidepressants, thyroid meds, none)', type: 'text' },
+    { key: 'eating_out', questionAr: 'كم مرة تأكل خارج المنزل في الأسبوع؟ (0-1, 2-3, 4-5, أكثر من 5)', questionEn: 'How many times do you eat out per week? (0-1, 2-3, 4-5, more than 5)', type: 'text' },
+    { key: 'country', questionAr: 'ما هي بلد إقامتك؟', questionEn: 'What is your country?', type: 'text' }
   ];
 
   useEffect(() => {
@@ -72,7 +74,16 @@ const AICoachScreen = () => {
         setUserProfile(data);
         setOnboardingStep(data.onboarding_step ?? 0);
       } else {
-        await supabase.from('user_profiles').insert({ user_id: user.id, onboarding_step: 0 });
+        // إنشاء ملف شخصي افتراضي مع الأسئلة الجديدة
+        const defaultProfile = {
+          user_id: user.id,
+          onboarding_step: 0,
+          diet_type: 'لا شيء',
+          allergies: 'لا شيء',
+          medications: 'لا شيء',
+          eating_out: '0-1'
+        };
+        await supabase.from('user_profiles').insert(defaultProfile);
         setOnboardingStep(0);
       }
     } catch (err) { console.error(err); }
@@ -91,13 +102,11 @@ const AICoachScreen = () => {
     } catch (err) { console.error(err); }
   };
 
-  // حساب الوزن المثالي (BMI = 22)
   const getIdealWeight = (heightCm) => {
     const heightM = heightCm / 100;
     return Math.round(22 * heightM * heightM);
   };
 
-  // توليد سؤال الوزن المستهدف بناءً على الطول المدخل
   const getTargetWeightQuestion = () => {
     const height = userProfile?.height;
     if (!height) return lang === 'ar' ? 'ما هو الوزن المستهدف؟' : 'Target weight?';
@@ -114,10 +123,9 @@ const AICoachScreen = () => {
     let stepKey = steps[currentStep].key;
     let processedAnswer = answer.trim();
 
-    // معالجة خاصة للوزن المستهدف: إذا لم يُدخل المستخدم رقماً، استخدم الوزن المثالي
+    // معالجة الوزن المستهدف
     if (stepKey === 'target_weight' && userProfile?.height) {
       const ideal = getIdealWeight(userProfile.height);
-      // إذا أجاب بنعم أو موافق أو ترك فارغاً، استخدم المثالي
       if (processedAnswer === '' || processedAnswer === 'نعم' || processedAnswer === 'yes' || processedAnswer === 'ok') {
         processedAnswer = ideal.toString();
       }
@@ -278,17 +286,15 @@ const AICoachScreen = () => {
   const handleSendMessage = async () => {
     if (!inputText.trim() && !imageFile) return;
 
-    // إذا كنا في مرحلة onboarding
     if (onboardingStep < steps.length) {
       await handleOnboardingAnswer(inputText.trim());
-      setInputText('');   // مسح الحقل
+      setInputText('');
       setImageFile(null);
       setImagePreview(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
 
-    // بعد onboarding: إرسال رسالة عادية
     let imageUrl = null;
     if (imageFile) {
       const fileName = `${user.id}/${Date.now()}.jpg`;
@@ -338,16 +344,34 @@ const AICoachScreen = () => {
 
   return (
     <div style={{ minHeight: '100vh', background: C.bg, display: 'flex', flexDirection: 'column' }}>
-      <div style={{ background: C.card, padding: '16px 20px', borderBottom: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <button onClick={() => setSidebarOpen(true)} style={{ background: 'transparent', border: 'none', fontSize: '24px', cursor: 'pointer', color: C.text }}>☰</button>
+      {/* Header ثابت (sticky) */}
+      <div style={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 10,
+        background: C.card,
+        padding: '16px 20px',
+        borderBottom: `1px solid ${C.border}`,
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+      }}>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button onClick={() => setShowPlanSidebar(true)} style={{ background: 'transparent', border: 'none', fontSize: '24px', cursor: 'pointer', color: C.text }}>☰</button>
+          <button onClick={() => setShowProfileSidebar(true)} style={{ background: 'transparent', border: 'none', fontSize: '24px', cursor: 'pointer', color: C.text }}>👤</button>
+        </div>
         <h1 style={{ fontSize: '20px', fontWeight: 'bold', color: C.teal, margin: 0 }}>{lang === 'ar' ? 'قوت - مدربك الشخصي' : 'Qoot - Your Coach'}</h1>
         <div style={{ width: '24px' }} />
       </div>
+
+      {/* منطقة المحادثة */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '16px 0' }}>
         {messages.map((msg, idx) => <ChatMessage key={idx} message={msg} lang={lang} />)}
         {isLoading && <div style={{ padding: '12px 16px', textAlign: 'center', color: C.muted }}>{lang === 'ar' ? 'يجيب...' : 'Thinking...'}</div>}
         <div ref={messagesEndRef} />
       </div>
+
+      {/* معاينة الصورة */}
       {imagePreview && (
         <div style={{ padding: '8px 16px', background: C.cardLight, display: 'flex', alignItems: 'center', gap: '8px' }}>
           <img src={imagePreview} alt="preview" style={{ width: '60px', height: '60px', borderRadius: '8px', objectFit: 'cover' }} />
@@ -355,6 +379,8 @@ const AICoachScreen = () => {
           <button onClick={() => { setImageFile(null); setImagePreview(null); if(fileInputRef.current) fileInputRef.current.value = ''; }} style={{ background: 'transparent', border: 'none', fontSize: '20px', cursor: 'pointer', color: C.danger }}>✕</button>
         </div>
       )}
+
+      {/* حقل الإدخال */}
       <div style={{ padding: '16px', borderTop: `1px solid ${C.border}`, background: C.bg }}>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           <input
@@ -370,7 +396,30 @@ const AICoachScreen = () => {
           <button onClick={handleSendMessage} disabled={isLoading || (!inputText.trim() && !imageFile)} style={{ background: C.teal, border: 'none', borderRadius: '24px', padding: '12px 20px', color: '#fff', cursor: 'pointer', fontWeight: '600', opacity: (isLoading || (!inputText.trim() && !imageFile)) ? 0.6 : 1 }}>➤</button>
         </div>
       </div>
-      <SidebarPlan isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} plan={currentPlan} userMetrics={userMetrics} lang={lang} weekProgress={weekProgress} />
+
+      {/* سايدبار الخطة (يمين) */}
+      <SidebarPlan
+        isOpen={showPlanSidebar}
+        onClose={() => setShowPlanSidebar(false)}
+        plan={currentPlan}
+        userMetrics={userMetrics}
+        lang={lang}
+        weekProgress={weekProgress}
+        userProfile={userProfile}
+      />
+
+      {/* سايدبار الملف الشخصي (يسار) */}
+      <SidebarProfile
+        isOpen={showProfileSidebar}
+        onClose={() => setShowProfileSidebar(false)}
+        userProfile={userProfile}
+        lang={lang}
+        onUpdate={async (updates) => {
+          await updateUserProfile(updates);
+          await regeneratePlan();
+          setShowProfileSidebar(false);
+        }}
+      />
     </div>
   );
 };
