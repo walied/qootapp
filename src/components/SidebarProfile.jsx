@@ -4,6 +4,7 @@ import { C } from '../constants';
 const SidebarProfile = ({ isOpen, onClose, userProfile, lang, onUpdate }) => {
   const [formData, setFormData] = useState({
     first_name: userProfile?.first_name || '',
+    whatsapp: userProfile?.whatsapp || '',
     current_weight: userProfile?.current_weight || '',
     height: userProfile?.height || '',
     age: userProfile?.age || '',
@@ -70,10 +71,18 @@ const SidebarProfile = ({ isOpen, onClose, userProfile, lang, onUpdate }) => {
           <button onClick={onClose} style={{ background: 'transparent', border: 'none', fontSize: '24px', cursor: 'pointer', color: C.muted }}>✕</button>
         </div>
 
+        {/* حقل الاسم الأول */}
         <div style={{ marginBottom: '16px' }}>
           <label style={labelStyle}>{lang === 'ar' ? 'الاسم الأول' : 'First Name'}</label>
           <input type="text" value={formData.first_name} onChange={(e) => handleChange('first_name', e.target.value)} style={inputStyle} />
         </div>
+
+        {/* حقل رقم الواتساب */}
+        <div style={{ marginBottom: '16px' }}>
+          <label style={labelStyle}>{lang === 'ar' ? 'رقم الواتساب (دون رمز البلد)' : 'WhatsApp number (no country code)'}</label>
+          <input type="tel" value={formData.whatsapp} onChange={(e) => handleChange('whatsapp', e.target.value)} style={inputStyle} placeholder="50123456" />
+        </div>
+
         <div style={{ marginBottom: '16px' }}>
           <label style={labelStyle}>{lang === 'ar' ? 'الوزن (كجم)' : 'Weight (kg)'}</label>
           <input type="number" value={formData.current_weight} onChange={(e) => handleChange('current_weight', e.target.value)} style={inputStyle} />
