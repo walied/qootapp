@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { C } from '../constants';
 
-const SidebarPlan = ({ isOpen, onClose, plan, userMetrics, lang, weekProgress, userProfile, onPayment }) => {
+const SidebarPlan = ({ isOpen, onClose, plan, userMetrics, lang, weekProgress, onPayment }) => {
   const [currentDayIndex, setCurrentDayIndex] = useState(weekProgress ? weekProgress.currentDay - 1 : 0);
   const daysInWeek = 7;
 
@@ -14,17 +14,14 @@ const SidebarPlan = ({ isOpen, onClose, plan, userMetrics, lang, weekProgress, u
   const currentDayPlan = plan?.plan_data?.weekly_plan?.[currentDayIndex];
   const currentDayName = currentDayPlan?.day || (lang === 'ar' ? `اليوم ${currentDayIndex + 1}` : `Day ${currentDayIndex + 1}`);
 
-  // تنظيف الخيارات من كلمة "أو" الزائدة
   const cleanOptions = (options) => {
     if (!options) return [];
     let opts = Array.isArray(options) ? options : [options];
-    // إزالة العناصر التي هي "أو" فقط
     opts = opts.filter(opt => {
       if (typeof opt !== 'string') return true;
       const trimmed = opt.trim();
       return trimmed !== 'أو' && trimmed !== 'or';
     });
-    // إزالة "أو" من بداية أو نهاية النص
     opts = opts.map(opt => {
       if (typeof opt !== 'string') return opt;
       return opt.replace(/^أو\s*/i, '').replace(/\s*أو$/i, '').trim();
@@ -63,7 +60,7 @@ const SidebarPlan = ({ isOpen, onClose, plan, userMetrics, lang, weekProgress, u
     if (currentDayIndex < daysInWeek - 1) setCurrentDayIndex(currentDayIndex + 1);
   };
 
-  const workout = currentDayPlan?.workout || (plan?.plan_data?.home_workout ? (typeof plan.plan_data.home_workout === 'string' ? plan.plan_data.home_workout : '') : '');
+  const workout = currentDayPlan?.workout || (plan?.plan_data?.home_workout && typeof plan.plan_data.home_workout === 'string' ? plan.plan_data.home_workout : '');
   const tips = plan?.plan_data?.tips || [];
 
   return (
@@ -87,7 +84,6 @@ const SidebarPlan = ({ isOpen, onClose, plan, userMetrics, lang, weekProgress, u
           <button onClick={onClose} style={{ background: 'transparent', border: 'none', fontSize: '24px', cursor: 'pointer', color: C.muted }}>✕</button>
         </div>
 
-        {/* Gamification */}
         <div style={{ background: C.card, borderRadius: '12px', padding: '16px', marginBottom: '20px' }}>
           <div style={{ marginBottom: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
@@ -104,15 +100,12 @@ const SidebarPlan = ({ isOpen, onClose, plan, userMetrics, lang, weekProgress, u
           </div>
         </div>
 
-        {/* Week Progress */}
         {weekProgress && (
           <div style={{ background: C.card, borderRadius: '12px', padding: '16px', marginBottom: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div style={{ color: C.text, fontWeight: '600', marginBottom: '4px' }}>{lang === 'ar' ? 'التقدم الأسبوعي' : 'Weekly Progress'}</div>
-                <div style={{ color: C.muted, fontSize: '14px' }}>
-                  {lang === 'ar' ? `اليوم ${weekProgress.currentDay} من الأسبوع ${weekProgress.weekNumber}` : `Day ${weekProgress.currentDay} of Week ${weekProgress.weekNumber}`}
-                </div>
+                <div style={{ color: C.muted, fontSize: '14px' }}>{lang === 'ar' ? `اليوم ${weekProgress.currentDay} من الأسبوع ${weekProgress.weekNumber}` : `Day ${weekProgress.currentDay} of Week ${weekProgress.weekNumber}`}</div>
                 {weekProgress.daysRemaining > 0 && <div style={{ color: C.teal, fontSize: '13px', marginTop: '4px' }}>{lang === 'ar' ? `باقي ${weekProgress.daysRemaining} يوم` : `${weekProgress.daysRemaining} days remaining`}</div>}
               </div>
               <div style={{ display: 'flex', gap: '8px' }}>
@@ -123,7 +116,6 @@ const SidebarPlan = ({ isOpen, onClose, plan, userMetrics, lang, weekProgress, u
           </div>
         )}
 
-        {/* Today's Plan */}
         {currentDayPlan ? (
           <div>
             <h3 style={{ fontSize: '16px', fontWeight: '600', color: C.text, marginBottom: '16px' }}>{currentDayName}</h3>
