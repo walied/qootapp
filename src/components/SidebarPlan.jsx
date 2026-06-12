@@ -84,7 +84,6 @@ const SidebarPlan = ({ isOpen, onClose, plan, userMetrics, lang, weekProgress, o
           <button onClick={onClose} style={{ background: 'transparent', border: 'none', fontSize: '24px', cursor: 'pointer', color: C.muted }}>✕</button>
         </div>
 
-        {/* Gamification */}
         <div style={{ background: C.card, borderRadius: '12px', padding: '16px', marginBottom: '20px' }}>
           <div style={{ marginBottom: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
@@ -101,7 +100,6 @@ const SidebarPlan = ({ isOpen, onClose, plan, userMetrics, lang, weekProgress, o
           </div>
         </div>
 
-        {/* Week progress */}
         {weekProgress && (
           <div style={{ background: C.card, borderRadius: '12px', padding: '16px', marginBottom: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -118,7 +116,6 @@ const SidebarPlan = ({ isOpen, onClose, plan, userMetrics, lang, weekProgress, o
           </div>
         )}
 
-        {/* Today's plan */}
         {currentDayPlan ? (
           <div>
             <h3 style={{ fontSize: '16px', fontWeight: '600', color: C.text, marginBottom: '16px' }}>{currentDayName}</h3>
@@ -143,7 +140,6 @@ const SidebarPlan = ({ isOpen, onClose, plan, userMetrics, lang, weekProgress, o
               </div>
             )}
 
-            {/* Payment button */}
             <div style={{ marginTop: '24px', padding: '16px', background: C.card, borderRadius: '12px', border: `1px solid ${C.border}` }}>
               <div style={{ fontSize: '14px', fontWeight: '600', color: C.text, marginBottom: '8px' }}>
                 {lang === 'ar' ? '💳 الاشتراك الأسبوعي' : '💳 Weekly Subscription'}
