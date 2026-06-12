@@ -21,8 +21,6 @@ const AICoachScreen = () => {
   const [imagePreview, setImagePreview] = useState(null);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
-  const [initialized, setInitialized] = useState(false);
-  const [firstQuestionSent, setFirstQuestionSent] = useState(false);
 
   // Onboarding steps
   const steps = [
@@ -45,22 +43,22 @@ const AICoachScreen = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Load data when user changes
   useEffect(() => {
-    if (user?.id && !initialized) {
+    if (user?.id) {
       loadMessages();
       loadUserProfile();
       loadCurrentPlan();
-      setInitialized(true);
     }
-  }, [user?.id, initialized]);
+  }, [user?.id]);
 
-  // After loading profile, if onboarding not complete and no messages, send first question
+  // Send first question when profile is loaded and user is on onboarding
   useEffect(() => {
-    if (userProfile && onboardingStep < steps.length && messages.length === 0 && !firstQuestionSent) {
+    if (userProfile && onboardingStep < steps.length && messages.length === 0) {
+      console.log('🎯 Sending first question - userProfile exists, onboarding:', onboardingStep);
       sendFirstQuestion();
-      setFirstQuestionSent(true);
     }
-  }, [userProfile, onboardingStep]);
+  }, [userProfile]);
 
   const loadMessages = async () => {
     try {
@@ -70,6 +68,7 @@ const AICoachScreen = () => {
         .eq('user_id', user.id)
         .order('created_at', { ascending: true });
       if (error) throw error;
+      console.log('📨 Messages loaded:', data?.length || 0);
       if (data) setMessages(data);
     } catch (err) {
       console.error('loadMessages error:', err);
@@ -87,6 +86,7 @@ const AICoachScreen = () => {
       if (error) throw error;
 
       if (!data) {
+        console.log('👤 Creating new profile for user');
         const newProfile = {
           user_id: user.id,
           onboarding_step: 0,
@@ -104,6 +104,7 @@ const AICoachScreen = () => {
         data = inserted;
       }
 
+      console.log('✅ Profile loaded, onboarding_step:', data.onboarding_step);
       setUserProfile(data);
       setOnboardingStep(data.onboarding_step ?? 0);
     } catch (err) {
@@ -130,16 +131,22 @@ const AICoachScreen = () => {
     try {
       const firstQuestion = steps[0];
       const questionText = lang === 'ar' ? firstQuestion.questionAr : firstQuestion.questionEn;
+      console.log('💬 First question:', questionText);
+      
       const assistantMsg = {
         role: 'assistant',
         content: questionText,
         created_at: new Date().toISOString(),
         user_id: user.id
       };
+      
+      // Update local state first for immediate UI update
       setMessages([assistantMsg]);
+      
+      // Then save to database
       const { error } = await supabase.from('conversations').insert(assistantMsg);
       if (error) {
-        console.error('Error inserting first question:', error);
+        console.error('Error saving first question:', error);
       }
     } catch (err) {
       console.error('sendFirstQuestion error:', err);
