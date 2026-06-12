@@ -22,6 +22,7 @@ const AICoachScreen = () => {
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
   const [initialized, setInitialized] = useState(false);
+  const [firstQuestionSent, setFirstQuestionSent] = useState(false);
 
   // Onboarding steps
   const steps = [
@@ -51,14 +52,15 @@ const AICoachScreen = () => {
       loadCurrentPlan();
       setInitialized(true);
     }
-  }, [user]);
+  }, [user?.id, initialized]);
 
   // After loading profile, if onboarding not complete and no messages, send first question
   useEffect(() => {
-    if (userProfile && onboardingStep < steps.length && messages.length === 0) {
+    if (userProfile && onboardingStep < steps.length && messages.length === 0 && !firstQuestionSent) {
       sendFirstQuestion();
+      setFirstQuestionSent(true);
     }
-  }, [userProfile, onboardingStep, messages]);
+  }, [userProfile, onboardingStep]);
 
   const loadMessages = async () => {
     try {
@@ -125,16 +127,23 @@ const AICoachScreen = () => {
   };
 
   const sendFirstQuestion = async () => {
-    const firstQuestion = steps[0];
-    const questionText = lang === 'ar' ? firstQuestion.questionAr : firstQuestion.questionEn;
-    const assistantMsg = {
-      role: 'assistant',
-      content: questionText,
-      created_at: new Date().toISOString(),
-      user_id: user.id
-    };
-    setMessages([assistantMsg]);
-    await supabase.from('conversations').insert(assistantMsg);
+    try {
+      const firstQuestion = steps[0];
+      const questionText = lang === 'ar' ? firstQuestion.questionAr : firstQuestion.questionEn;
+      const assistantMsg = {
+        role: 'assistant',
+        content: questionText,
+        created_at: new Date().toISOString(),
+        user_id: user.id
+      };
+      setMessages([assistantMsg]);
+      const { error } = await supabase.from('conversations').insert(assistantMsg);
+      if (error) {
+        console.error('Error inserting first question:', error);
+      }
+    } catch (err) {
+      console.error('sendFirstQuestion error:', err);
+    }
   };
 
   const getIdealWeight = (heightCm) => {
