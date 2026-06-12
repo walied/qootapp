@@ -58,7 +58,7 @@ const AICoachScreen = () => {
       console.log('🎯 Sending first question - userProfile exists, onboarding:', onboardingStep);
       sendFirstQuestion();
     }
-  }, [userProfile]);
+  }, [userProfile, onboardingStep, messages.length, steps.length]);
 
   const loadMessages = async () => {
     try {
@@ -262,14 +262,18 @@ const AICoachScreen = () => {
       });
       const result = await response.json();
       const planData = JSON.parse(result.plan);
+      const now = new Date().toISOString();
 
-      await supabase.from('weekly_plans').insert({
+      const { data: insertedPlan, error: insertError } = await supabase.from('weekly_plans').insert({
         user_id: user.id,
         week_number: 1,
-        plan_data: planData
-      });
+        plan_data: planData,
+        created_at: now
+      }).select().single();
 
-      setCurrentPlan({ plan_data: planData });
+      if (insertError) throw insertError;
+
+      setCurrentPlan(insertedPlan || { plan_data: planData, created_at: now, week_number: 1 });
 
       const successMsg = {
         role: 'assistant',
@@ -308,6 +312,11 @@ const AICoachScreen = () => {
     setIsLoading(true);
 
     try {
+      const apiKey = import.meta.env.VITE_DEEPSEEK_API_KEY;
+      if (!apiKey) {
+        throw new Error('API key not configured');
+      }
+
       const systemPrompt = `أنت Qoot، مدرب صحي ذكي بالعربية. تتحدث اللهجة الخليجية والمصرية.
       خطة المستخدم الحالية: ${JSON.stringify(currentPlan?.plan_data?.weekly_plan?.[0] || {})}
       وزنه: ${userProfile?.current_weight} كجم، هدفه: ${userProfile?.target_weight} كجم.
@@ -317,7 +326,7 @@ const AICoachScreen = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_DEEPSEEK_API_KEY}`
+          'Authorization': `Bearer ${apiKey}`
         },
         body: JSON.stringify({
           model: 'deepseek-chat',
@@ -343,7 +352,8 @@ const AICoachScreen = () => {
         user_id: user.id
       };
       setMessages(prev => [...prev, assistantMsg]);
-      await supabase.from('conversations').insert([userMsg, assistantMsg]);
+      const { error } = await supabase.from('conversations').insert([userMsg, assistantMsg]);
+      if (error) throw error;
     } catch (error) {
       console.error('DeepSeek error:', error);
       const errorReply = {
@@ -353,7 +363,8 @@ const AICoachScreen = () => {
         user_id: user.id
       };
       setMessages(prev => [...prev, errorReply]);
-      await supabase.from('conversations').insert(errorReply);
+      const { error: insertError } = await supabase.from('conversations').insert(errorReply);
+      if (insertError) console.error('Insert error:', insertError);
     } finally {
       setIsLoading(false);
     }
@@ -496,9 +507,13 @@ const AICoachScreen = () => {
         userProfile={userProfile}
         lang={lang}
         onUpdate={async (updates) => {
-          await updateUserProfile(updates);
-          await regeneratePlan();
-          setShowProfileSidebar(false);
+          const profileUpdated = await updateUserProfile(updates);
+          if (profileUpdated) {
+            const planRegenerated = await regeneratePlan();
+            if (planRegenerated) {
+              setShowProfileSidebar(false);
+            }
+          }
         }}
       />
     </div>

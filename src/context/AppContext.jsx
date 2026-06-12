@@ -159,13 +159,15 @@ export function AppProvider({ children }) {
       });
       const result = await response.json();
       const planData = JSON.parse(result.plan);
-      const { error } = await supabase.from('weekly_plans').insert({
+      const now = new Date().toISOString();
+      const { data: insertedPlan, error } = await supabase.from('weekly_plans').insert({
         user_id: user.id,
         week_number: (currentPlan?.week_number || 0) + 1,
-        plan_data: planData
-      });
+        plan_data: planData,
+        created_at: now
+      }).select().single();
       if (error) throw error;
-      setCurrentPlan({ plan_data: planData });
+      setCurrentPlan(insertedPlan || { plan_data: planData, created_at: now, week_number: (currentPlan?.week_number || 0) + 1 });
       return true;
     } catch (err) {
       console.error('Regenerate plan error:', err);

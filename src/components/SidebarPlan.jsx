@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { C } from '../constants';
 
 const SidebarPlan = ({ isOpen, onClose, plan, userMetrics, lang, weekProgress, onPayment }) => {
-  const [currentDayIndex, setCurrentDayIndex] = useState(weekProgress ? weekProgress.currentDay - 1 : 0);
+  const [currentDayIndex, setCurrentDayIndex] = useState(weekProgress ? Math.max(0, weekProgress.currentDay - 1) : 0);
   const daysInWeek = 7;
 
   if (!isOpen) return null;
