@@ -39,6 +39,21 @@ export default function AuthScreen() {
         return;
       }
       if (data?.user) {
+        // Create user profile for onboarding
+        try {
+          const defaultProfile = {
+            user_id: data.user.id,
+            onboarding_step: 0,
+            diet_type: 'لا شيء',
+            allergies: 'لا شيء',
+            medications: 'لا شيء',
+            eating_out: '0-1'
+          };
+          await supabase.from('user_profiles').insert(defaultProfile);
+        } catch (profileError) {
+          console.error('Error creating profile:', profileError);
+        }
+        
         setSuccessMessage(
           lang === "ar"
             ? "تم إرسال رابط التأكيد إلى بريدك الإلكتروني. يرجى تأكيد حسابك ثم تسجيل الدخول."
@@ -80,7 +95,7 @@ export default function AuthScreen() {
           await supabase.from("users").upsert(newUser);
           setUserProfile(newUser);
         }
-        setScreen("quiz");
+        setScreen("coach");
       }
     }
     setLoading(false);
