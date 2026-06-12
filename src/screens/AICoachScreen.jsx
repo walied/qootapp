@@ -21,8 +21,9 @@ const AICoachScreen = () => {
   const [imagePreview, setImagePreview] = useState(null);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
+  const [initialized, setInitialized] = useState(false);
 
-  // Onboarding steps (adjust to match your user_profiles columns)
+  // Onboarding steps
   const steps = [
     { key: 'first_name', questionAr: 'ما هو اسمك الأول؟', questionEn: 'What is your first name?', type: 'text' },
     { key: 'current_weight', questionAr: 'ما هو وزنك الحالي (كجم)؟', questionEn: 'Current weight (kg)?', type: 'number' },
@@ -44,14 +45,21 @@ const AICoachScreen = () => {
   }, [messages]);
 
   useEffect(() => {
-    if (user?.id) {
+    if (user?.id && !initialized) {
       loadMessages();
       loadUserProfile();
       loadCurrentPlan();
+      setInitialized(true);
     }
   }, [user]);
 
-  // Load messages from Supabase
+  // After loading profile, if onboarding not complete and no messages, send first question
+  useEffect(() => {
+    if (userProfile && onboardingStep < steps.length && messages.length === 0) {
+      sendFirstQuestion();
+    }
+  }, [userProfile, onboardingStep, messages]);
+
   const loadMessages = async () => {
     try {
       const { data, error } = await supabase
@@ -66,19 +74,17 @@ const AICoachScreen = () => {
     }
   };
 
-  // Load user profile (using maybeSingle to avoid 406 when no row)
   const loadUserProfile = async () => {
     try {
       let { data, error } = await supabase
         .from('user_profiles')
         .select('*')
         .eq('user_id', user.id)
-        .maybeSingle(); // ✅ prevents 406 when no row
+        .maybeSingle();
 
       if (error) throw error;
 
       if (!data) {
-        // Create profile if it doesn't exist (upsert to avoid 409)
         const newProfile = {
           user_id: user.id,
           onboarding_step: 0,
@@ -118,6 +124,19 @@ const AICoachScreen = () => {
     }
   };
 
+  const sendFirstQuestion = async () => {
+    const firstQuestion = steps[0];
+    const questionText = lang === 'ar' ? firstQuestion.questionAr : firstQuestion.questionEn;
+    const assistantMsg = {
+      role: 'assistant',
+      content: questionText,
+      created_at: new Date().toISOString(),
+      user_id: user.id
+    };
+    setMessages([assistantMsg]);
+    await supabase.from('conversations').insert(assistantMsg);
+  };
+
   const getIdealWeight = (heightCm) => {
     const heightM = heightCm / 100;
     return Math.round(22 * heightM * heightM);
@@ -146,7 +165,6 @@ const AICoachScreen = () => {
       }
     }
 
-    // Update only the current field and onboarding_step
     const updates = { [stepKey]: processedAnswer, onboarding_step: currentStep + 1 };
     const { error } = await supabase
       .from('user_profiles')
@@ -166,12 +184,10 @@ const AICoachScreen = () => {
       return false;
     }
 
-    // Update local state
     setUserProfile(prev => ({ ...prev, ...updates }));
     const newStep = currentStep + 1;
     setOnboardingStep(newStep);
 
-    // Add user message to UI and DB
     const userMsg = {
       role: 'user',
       content: answer,
@@ -194,7 +210,6 @@ const AICoachScreen = () => {
       return true;
     }
 
-    // Ask next question
     let nextQuestion = '';
     const nextStep = steps[newStep];
     if (nextStep.key === 'target_weight') {
@@ -217,7 +232,6 @@ const AICoachScreen = () => {
 
   const generatePlan = async () => {
     try {
-      // Get latest profile
       const { data: profile, error: profileError } = await supabase
         .from('user_profiles')
         .select('*')
@@ -233,12 +247,11 @@ const AICoachScreen = () => {
       const result = await response.json();
       const planData = JSON.parse(result.plan);
 
-      const { error: insertError } = await supabase.from('weekly_plans').insert({
+      await supabase.from('weekly_plans').insert({
         user_id: user.id,
         week_number: 1,
         plan_data: planData
       });
-      if (insertError) throw insertError;
 
       setCurrentPlan({ plan_data: planData });
 
@@ -279,7 +292,6 @@ const AICoachScreen = () => {
     setIsLoading(true);
 
     try {
-      // Call DeepSeek API (ensure VITE_DEEPSEEK_API_KEY is set in .env)
       const systemPrompt = `أنت Qoot، مدرب صحي ذكي بالعربية. تتحدث اللهجة الخليجية والمصرية.
       خطة المستخدم الحالية: ${JSON.stringify(currentPlan?.plan_data?.weekly_plan?.[0] || {})}
       وزنه: ${userProfile?.current_weight} كجم، هدفه: ${userProfile?.target_weight} كجم.
@@ -303,9 +315,7 @@ const AICoachScreen = () => {
         })
       });
 
-      if (!response.ok) {
-        throw new Error(`DeepSeek API error: ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`DeepSeek API error: ${response.status}`);
 
       const data = await response.json();
       const reply = data.choices?.[0]?.message?.content || 'عذراً، لم أفهم. حاول مرة أخرى.';
@@ -318,7 +328,6 @@ const AICoachScreen = () => {
       };
       setMessages(prev => [...prev, assistantMsg]);
       await supabase.from('conversations').insert([userMsg, assistantMsg]);
-
     } catch (error) {
       console.error('DeepSeek error:', error);
       const errorReply = {
@@ -335,8 +344,7 @@ const AICoachScreen = () => {
   };
 
   const analyzeMealImage = async (file, text) => {
-    // Placeholder – integrate with your vision API (Gemini or GPT-4V)
-    // For now, return a static analysis.
+    // Placeholder for image analysis
     return "📊 التقدير التقريبي: 450 سعرة، 30g بروتين، 50g كارب، 15g دهون. وجبة متوازنة.";
   };
 
@@ -407,7 +415,6 @@ const AICoachScreen = () => {
 
   return (
     <div style={{ minHeight: '100vh', background: C.bg, display: 'flex', flexDirection: 'column' }}>
-      {/* Sticky header */}
       <div style={{
         position: 'sticky',
         top: 0,
@@ -427,14 +434,12 @@ const AICoachScreen = () => {
         <div style={{ width: '24px' }} />
       </div>
 
-      {/* Chat messages */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '16px 0' }}>
         {messages.map((msg, idx) => <ChatMessage key={idx} message={msg} lang={lang} />)}
         {isLoading && <div style={{ padding: '12px 16px', textAlign: 'center', color: C.muted }}>{lang === 'ar' ? 'يجيب...' : 'Thinking...'}</div>}
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Image preview */}
       {imagePreview && (
         <div style={{ padding: '8px 16px', background: C.cardLight, display: 'flex', alignItems: 'center', gap: '8px' }}>
           <img src={imagePreview} alt="preview" style={{ width: '60px', height: '60px', borderRadius: '8px', objectFit: 'cover' }} />
@@ -443,7 +448,6 @@ const AICoachScreen = () => {
         </div>
       )}
 
-      {/* Input area */}
       <div style={{ padding: '16px', borderTop: `1px solid ${C.border}`, background: C.bg }}>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           <input
@@ -460,7 +464,6 @@ const AICoachScreen = () => {
         </div>
       </div>
 
-      {/* Sidebars */}
       <SidebarPlan
         isOpen={showPlanSidebar}
         onClose={() => setShowPlanSidebar(false)}
