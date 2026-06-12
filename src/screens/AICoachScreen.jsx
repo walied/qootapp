@@ -1,424 +1,299 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useApp } from '../context/AppContext';
-import { supabase } from '../lib/supabaseClient';
-import ChatMessage from '../components/ChatMessage';
+import { useAuth } from '../contexts/AuthContext';
+import { db, storage } from '../firebase';
+import { doc, getDoc, setDoc, updateDoc, collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import SidebarPlan from '../components/SidebarPlan';
 import SidebarProfile from '../components/SidebarProfile';
+import ChatMessage from '../components/ChatMessage';
 import { C } from '../constants';
 
 const AICoachScreen = () => {
-  const {
-    lang, user, messages, setMessages, currentPlan, setCurrentPlan,
-    userProfile, setUserProfile, userMetrics, setUserMetrics,
-    onboardingStep, setOnboardingStep, updateUserProfile, regeneratePlan
-  } = useApp();
-
+  const { user, lang, setLang } = useAuth();
+  const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPlanSidebar, setShowPlanSidebar] = useState(false);
   const [showProfileSidebar, setShowProfileSidebar] = useState(false);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [userProfile, setUserProfile] = useState(null);
+  const [currentPlan, setCurrentPlan] = useState(null);
+  const [gamification, setGamification] = useState({ xp: 0, level: 1, streak: 0, badges: [] });
+  const [onboardingStep, setOnboardingStep] = useState(null); // null means onboarding finished
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  const steps = [
-    { key: 'current_weight', questionAr: 'ما هو وزنك الحالي (كجم)؟', questionEn: 'Current weight (kg)?', type: 'number' },
-    { key: 'height', questionAr: 'ما هو طولك (سم)؟', questionEn: 'Height (cm)?', type: 'number' },
-    { key: 'age', questionAr: 'كم عمرك؟', questionEn: 'Age?', type: 'number' },
-    { key: 'target_weight', questionAr: '', questionEn: '', type: 'target_suggestion' },
-    { key: 'activity_level', questionAr: 'مستوى نشاطك؟ (قليل/متوسط/عالي)', questionEn: 'Activity level? (low/medium/high)', type: 'text' },
-    { key: 'health_conditions', questionAr: 'هل تعاني من أي أمراض مزمنة؟ (سكري، ضغط، غدة، كلى، كبد...)', questionEn: 'Any chronic diseases? (diabetes, pressure, thyroid, kidney, liver...)', type: 'text' },
-    { key: 'diet_type', questionAr: 'هل تتبع أي نظام غذائي معين؟ (نباتي، كيتو، متوسطي، لا شيء)', questionEn: 'Do you follow a specific diet? (vegetarian, keto, mediterranean, none)', type: 'text' },
-    { key: 'allergies', questionAr: 'هل تعاني من أي حساسية غذائية؟ (لاكتوز، جلوتين، مكسرات، بيض، بحريات، لا شيء)', questionEn: 'Any food allergies? (lactose, gluten, nuts, eggs, seafood, none)', type: 'text' },
-    { key: 'medications', questionAr: 'هل تتناول أدوية تؤثر على الوزن أو الشهية؟ (مثل الكورتيزون، مضادات الاكتئاب، أدوية الغدة، لا شيء)', questionEn: 'Do you take medications that affect weight or appetite? (cortisone, antidepressants, thyroid meds, none)', type: 'text' },
-    { key: 'eating_out', questionAr: 'كم مرة تأكل خارج المنزل في الأسبوع؟ (0-1, 2-3, 4-5, أكثر من 5)', questionEn: 'How many times do you eat out per week? (0-1, 2-3, 4-5, more than 5)', type: 'text' },
-    { key: 'whatsapp', questionAr: 'رقم واتسابك (مثال: +96550123456)', questionEn: 'Your WhatsApp number (e.g., +96550123456)', type: 'text' },
-    { key: 'country', questionAr: 'ما هي بلد إقامتك؟', questionEn: 'What is your country?', type: 'text' }
-  ];
+  // Load user data on mount
+  useEffect(() => {
+    if (user) {
+      loadUserProfile();
+      loadConversation();
+      loadCurrentPlan();
+      loadGamification();
+      // Check if onboarding needed (profile missing fields)
+      checkOnboardingStatus();
+    }
+  }, [user]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  useEffect(() => {
-    if (user?.id) {
-      loadMessages();
-      loadUserProfile();
-      loadCurrentPlan();
+  const loadUserProfile = async () => {
+    const docRef = doc(db, 'users', user.uid);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      setUserProfile(docSnap.data().profile || {});
     }
-  }, [user]);
-
-  const loadMessages = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('conversations')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: true });
-      if (error) throw error;
-      if (data) setMessages(data);
-    } catch (err) { console.error(err); }
   };
 
-  const loadUserProfile = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-      if (error && error.code !== 'PGRST116') throw error;
-      if (data) {
-        setUserProfile(data);
-        setOnboardingStep(data.onboarding_step ?? 0);
-      } else {
-        const defaultProfile = {
-          user_id: user.id,
-          onboarding_step: 0,
-          diet_type: 'لا شيء',
-          allergies: 'لا شيء',
-          medications: 'لا شيء',
-          eating_out: '0-1',
-          whatsapp: ''
-        };
-        await supabase.from('user_profiles').insert(defaultProfile);
-        setOnboardingStep(0);
-      }
-    } catch (err) { console.error(err); }
+  const loadConversation = () => {
+    const q = query(
+      collection(db, 'users', user.uid, 'messages'),
+      orderBy('timestamp', 'asc')
+    );
+    return onSnapshot(q, (snapshot) => {
+      const msgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setMessages(msgs);
+    });
   };
 
   const loadCurrentPlan = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('weekly_plans')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(1);
-      if (error) throw error;
-      if (data && data.length) setCurrentPlan(data[0]);
-    } catch (err) { console.error(err); }
+    const planRef = doc(db, 'users', user.uid, 'plan', 'current');
+    const planSnap = await getDoc(planRef);
+    if (planSnap.exists()) {
+      setCurrentPlan(planSnap.data());
+    }
   };
 
-  const getIdealWeight = (heightCm) => {
-    const heightM = heightCm / 100;
-    return Math.round(22 * heightM * heightM);
+  const loadGamification = async () => {
+    const gamRef = doc(db, 'users', user.uid, 'gamification', 'stats');
+    const gamSnap = await getDoc(gamRef);
+    if (gamSnap.exists()) {
+      setGamification(gamSnap.data());
+    }
   };
 
-  const getTargetWeightQuestion = () => {
-    const height = userProfile?.height;
-    if (!height) return lang === 'ar' ? 'ما هو الوزن المستهدف؟' : 'Target weight?';
-    const ideal = getIdealWeight(height);
-    return lang === 'ar'
-      ? `الوزن المثالي لطولك هو ${ideal} كجم. هل ترغب في الوصول إلى هذا الوزن؟ (اكتب ${ideal} أو أي رقم آخر)`
-      : `Your ideal weight is ${ideal} kg. Do you want to reach this weight? (enter ${ideal} or any other number)`;
+  const checkOnboardingStatus = async () => {
+    const profile = userProfile;
+    const requiredFields = ['firstName', 'currentWeight', 'height', 'age', 'targetWeight', 'activityLevel', 'country'];
+    const missing = requiredFields.some(f => !profile?.[f]);
+    if (missing) {
+      setOnboardingStep(0);
+      // Optionally redirect to onboarding screen, but here we'll handle via chat
+    } else {
+      setOnboardingStep(null);
+    }
   };
 
-  const handleOnboardingAnswer = async (answer) => {
-    const currentStep = onboardingStep;
-    if (currentStep >= steps.length) return false;
-
-    let stepKey = steps[currentStep].key;
-    let processedAnswer = answer.trim();
-
-    if (stepKey === 'target_weight' && userProfile?.height) {
-      const ideal = getIdealWeight(userProfile.height);
-      if (processedAnswer === '' || processedAnswer === 'نعم' || processedAnswer === 'yes' || processedAnswer === 'ok') {
-        processedAnswer = ideal.toString();
+  const updateGamification = async (points, action) => {
+    const newXp = gamification.xp + points;
+    const newLevel = Math.floor(newXp / 1000) + 1;
+    const updates = { xp: newXp, level: newLevel };
+    if (action === 'streak') {
+      const today = new Date().toDateString();
+      const lastActive = gamification.lastActiveDate;
+      let newStreak = gamification.streak;
+      if (lastActive !== today) {
+        const yesterday = new Date(Date.now() - 86400000).toDateString();
+        if (lastActive === yesterday) newStreak++;
+        else newStreak = 1;
+        updates.streak = newStreak;
+        updates.lastActiveDate = today;
       }
     }
+    await setDoc(doc(db, 'users', user.uid, 'gamification', 'stats'), updates, { merge: true });
+    setGamification(prev => ({ ...prev, ...updates }));
+  };
 
-    const updates = { [stepKey]: processedAnswer, onboarding_step: currentStep + 1 };
-    const { error } = await supabase
-      .from('user_profiles')
-      .update(updates)
-      .eq('user_id', user.id);
+  const retrieveMemory = async () => {
+    const memoryRef = collection(db, 'users', user.uid, 'memory');
+    const snapshot = await getDocs(memoryRef);
+    return snapshot.docs.map(doc => doc.data().observation);
+  };
 
-    if (error) {
-      console.error('Supabase update error:', error);
-      const errorMsg = {
-        role: 'assistant',
-        content: lang === 'ar' ? `خطأ في حفظ إجابتك: ${error.message}` : `Error saving answer: ${error.message}`,
-        created_at: new Date().toISOString(),
-        user_id: user.id
-      };
-      setMessages(prev => [...prev, errorMsg]);
-      return false;
-    }
+  const storeMemory = async (observation) => {
+    await addDoc(collection(db, 'users', user.uid, 'memory'), {
+      observation,
+      timestamp: serverTimestamp()
+    });
+  };
 
-    setUserProfile(prev => ({ ...prev, ...updates }));
-    const newStep = currentStep + 1;
-    setOnboardingStep(newStep);
+  const callDeepSeek = async (messagesArray, userData, plan, memory) => {
+    const systemPrompt = `أنت Qoot، مدرب صحي ذكي بالعربية. تتحدث اللهجة الخليجية والمصرية.
+    خطة المستخدم الحالية: ${JSON.stringify(plan?.weekly_plan?.[0] || {})}
+    وزنه: ${userData?.currentWeight} كجم، هدفه: ${userData?.targetWeight} كجم.
+    ذاكرة العادات: ${memory.join(', ')}
+    كن مختصراً وداعماً ولا تكرر النصائح.`;
+    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${import.meta.env.VITE_DEEPSEEK_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'deepseek-chat',
+        messages: [{ role: 'system', content: systemPrompt }, ...messagesArray],
+        temperature: 0.7,
+        max_tokens: 500
+      })
+    });
+    const data = await response.json();
+    return data.choices[0].message.content;
+  };
 
+  const sendMessage = async (text, imageUrl = null) => {
     const userMsg = {
       role: 'user',
-      content: answer,
-      created_at: new Date().toISOString(),
-      user_id: user.id
-    };
-    setMessages(prev => [...prev, userMsg]);
-
-    if (newStep >= steps.length) {
-      const loadingMsg = {
-        role: 'assistant',
-        content: lang === 'ar' ? 'جاري تجهيز خطتك الغذائية... يرجى الانتظار قليلاً.' : 'Preparing your meal plan... Please wait.',
-        created_at: new Date().toISOString(),
-        user_id: user.id
-      };
-      setMessages(prev => [...prev, loadingMsg]);
-      await generatePlan();
-      return true;
-    }
-
-    let nextQuestion = '';
-    const nextStep = steps[newStep];
-    if (nextStep.key === 'target_weight') {
-      nextQuestion = getTargetWeightQuestion();
-    } else {
-      nextQuestion = lang === 'ar' ? nextStep.questionAr : nextStep.questionEn;
-    }
-
-    const assistantMsg = {
-      role: 'assistant',
-      content: nextQuestion,
-      created_at: new Date().toISOString(),
-      user_id: user.id
-    };
-    setMessages(prev => [...prev, assistantMsg]);
-
-    await supabase.from('conversations').insert([
-      { user_id: user.id, role: 'user', content: answer, created_at: new Date().toISOString() },
-      { user_id: user.id, role: 'assistant', content: nextQuestion, created_at: new Date().toISOString() }
-    ]);
-
-    return true;
-  };
-
-  const generatePlan = async () => {
-    try {
-      const { data: profile } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-
-      const response = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userData: profile, lang })
-      });
-      const result = await response.json();
-      const planData = JSON.parse(result.plan);
-
-      await supabase.from('weekly_plans').insert({
-        user_id: user.id,
-        week_number: 1,
-        plan_data: planData
-      });
-
-      setCurrentPlan({ plan_data: planData });
-
-      const successMsg = {
-        role: 'assistant',
-        content: lang === 'ar'
-          ? '✨ تم إنشاء خطتك الغذائية بنجاح! يمكنك الآن سؤالي عن أي وجبة أو رفع صورة لتحليلها. اضغط على ☰ لعرض الخطة الأسبوعية.'
-          : '✨ Your meal plan has been created! You can now ask me about any meal or upload a photo for analysis. Click ☰ to view your weekly plan.',
-        created_at: new Date().toISOString(),
-        user_id: user.id
-      };
-      setMessages(prev => [...prev, successMsg]);
-      await supabase.from('conversations').insert(successMsg);
-    } catch (err) {
-      console.error('Plan generation error:', err);
-      const errorMsg = {
-        role: 'assistant',
-        content: lang === 'ar' ? 'عذراً، حدث خطأ في إنشاء خطتك. حاول مجدداً لاحقاً.' : 'Sorry, an error occurred. Please try again later.',
-        created_at: new Date().toISOString(),
-        user_id: user.id
-      };
-      setMessages(prev => [...prev, errorMsg]);
-    }
-  };
-
-  const sendNormalMessage = async (text, imageUrl = null) => {
-    const userMessage = {
-      role: 'user',
       content: text || (imageUrl ? '📷 صورة وجبة' : ''),
-      created_at: new Date().toISOString(),
-      user_id: user.id
+      timestamp: serverTimestamp()
     };
-    setMessages(prev => [...prev, userMessage]);
+    const msgRef = await addDoc(collection(db, 'users', user.uid, 'messages'), userMsg);
+    setMessages(prev => [...prev, { id: msgRef.id, ...userMsg }]);
 
     setIsLoading(true);
     try {
-      const { data: fnData, error: fnErr } = await supabase.functions.invoke('send-message', {
-        body: {
-          message: text,
-          userId: user.id,
-          userProfile,
-          currentPlan,
-          recentMessages: messages.slice(-5),
-          imageUrl
-        }
-      });
-      if (fnErr) throw fnErr;
-      const aiMessage = {
+      const memory = await retrieveMemory();
+      const aiReply = await callDeepSeek(
+        messages.slice(-5).map(m => ({ role: m.role, content: m.content })),
+        userProfile,
+        currentPlan,
+        memory
+      );
+      const aiMsg = {
         role: 'assistant',
-        content: fnData.reply,
-        created_at: new Date().toISOString(),
-        user_id: user.id
+        content: aiReply,
+        timestamp: serverTimestamp()
       };
-      setMessages(prev => [...prev, aiMessage]);
-    } catch (err) {
-      console.error('sendNormalMessage error:', err);
-      const errorReply = {
+      const aiMsgRef = await addDoc(collection(db, 'users', user.uid, 'messages'), aiMsg);
+      setMessages(prev => [...prev, { id: aiMsgRef.id, ...aiMsg }]);
+      await updateGamification(5, 'chat');
+    } catch (error) {
+      console.error('DeepSeek error:', error);
+      const errorMsg = {
         role: 'assistant',
-        content: lang === 'ar' ? 'عذراً، حدث خطأ، حاول مجدداً.' : 'Sorry, an error occurred. Please try again.',
-        created_at: new Date().toISOString(),
-        user_id: user.id
+        content: lang === 'ar' ? 'عذراً، حدث خطأ. حاول مجدداً.' : 'Sorry, an error occurred. Try again.',
+        timestamp: serverTimestamp()
       };
-      setMessages(prev => [...prev, errorReply]);
+      const errRef = await addDoc(collection(db, 'users', user.uid, 'messages'), errorMsg);
+      setMessages(prev => [...prev, { id: errRef.id, ...errorMsg }]);
     } finally {
       setIsLoading(false);
     }
   };
 
+  const analyzeMealImage = async (file) => {
+    const storageRef = ref(storage, `meal-images/${user.uid}/${Date.now()}_${file.name}`);
+    await uploadBytes(storageRef, file);
+    const downloadUrl = await getDownloadURL(storageRef);
+    // Call Gemini Vision API
+    const response = await fetch('https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=' + import.meta.env.VITE_GEMINI_API_KEY, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            { text: "Analyze this meal photo. Estimate calories, protein, carbs, fat, and main ingredients. Respond in Arabic." },
+            { inlineData: { mimeType: file.type, data: await fileToBase64(file) } }
+          ]
+        }]
+      })
+    });
+    const data = await response.json();
+    const analysis = data.candidates?.[0]?.content?.parts?.[0]?.text || 'تعذر التحليل';
+    // Store in meal_logs
+    await addDoc(collection(db, 'meal_logs'), {
+      userId: user.uid,
+      imageUrl: downloadUrl,
+      analysis,
+      timestamp: serverTimestamp()
+    });
+    return analysis;
+  };
+
+  const fileToBase64 = (file) => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = error => reject(error);
+  });
+
   const handleSendMessage = async () => {
     if (!inputText.trim() && !imageFile) return;
-
-    if (onboardingStep < steps.length) {
-      await handleOnboardingAnswer(inputText.trim());
-      setInputText('');
-      setImageFile(null);
-      setImagePreview(null);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-      return;
-    }
-
     let imageUrl = null;
+    let analysisText = '';
     if (imageFile) {
-      const fileName = `${user.id}/${Date.now()}.jpg`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('meal-images')
-        .upload(fileName, imageFile);
-      if (uploadError) {
-        console.error(uploadError);
-        alert(lang === 'ar' ? 'فشل رفع الصورة' : 'Image upload failed');
-        return;
-      }
-      const { data: { publicUrl } } = supabase.storage.from('meal-images').getPublicUrl(fileName);
-      imageUrl = publicUrl;
+      analysisText = await analyzeMealImage(imageFile);
       setImageFile(null);
       setImagePreview(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
-
-    await sendNormalMessage(inputText, imageUrl);
+    const finalText = inputText || (imageFile ? `📷 تحليل الوجبة: ${analysisText}` : '');
+    await sendMessage(finalText, imageUrl);
     setInputText('');
   };
 
   const handleImageSelect = (e) => {
-    const f = e.target.files[0];
-    if (f) {
-      setImageFile(f);
-      const r = new FileReader();
-      r.onload = (ev) => setImagePreview(ev.target.result);
-      r.readAsDataURL(f);
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onload = (ev) => setImagePreview(ev.target.result);
+      reader.readAsDataURL(file);
     }
-  };
-
-  const handlePayment = () => {
-    window.open('https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=abuhaa0@gmail.com&amount=2.99&currency_code=USD&item_name=Qoot%20Week%20Subscription', '_blank');
-  };
-
-  const weekProgress = currentPlan?.created_at ? {
-    weekNumber: currentPlan.week_number || 1,
-    currentDay: Math.min(7, Math.floor((Date.now() - new Date(currentPlan.created_at).getTime()) / 86400000) + 1),
-    daysRemaining: Math.max(0, 7 - Math.floor((Date.now() - new Date(currentPlan.created_at).getTime()) / 86400000))
-  } : null;
-
-  const getPlaceholder = () => {
-    if (onboardingStep < steps.length) {
-      const step = steps[onboardingStep];
-      if (step.key === 'target_weight') return getTargetWeightQuestion();
-      return lang === 'ar' ? step.questionAr : step.questionEn;
-    }
-    return lang === 'ar' ? 'اكتب رسالتك أو ارفع صورة...' : 'Type your message or upload a photo...';
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: C.bg, display: 'flex', flexDirection: 'column' }}>
-      <div style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 10,
-        background: C.card,
-        padding: '16px 20px',
-        borderBottom: `1px solid ${C.border}`,
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center'
-      }}>
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <button onClick={() => setShowPlanSidebar(true)} style={{ background: 'transparent', border: 'none', fontSize: '24px', cursor: 'pointer', color: C.text }}>☰</button>
-          <button onClick={() => setShowProfileSidebar(true)} style={{ background: 'transparent', border: 'none', fontSize: '24px', cursor: 'pointer', color: C.text }}>👤</button>
+    <div className="min-h-screen bg-[#0B0F19] flex flex-col">
+      {/* Header */}
+      <div className="sticky top-0 z-10 bg-[#151C2C] border-b border-[#334155] p-4 flex justify-between items-center">
+        <div className="flex gap-3">
+          <button onClick={() => setShowPlanSidebar(true)} className="text-2xl text-[#F8FAFC]">☰</button>
+          <button onClick={() => setShowProfileSidebar(true)} className="text-2xl text-[#F8FAFC]">👤</button>
         </div>
-        <h1 style={{ fontSize: '20px', fontWeight: 'bold', color: C.teal, margin: 0 }}>{lang === 'ar' ? 'قوت - مدربك الشخصي' : 'Qoot - Your Coach'}</h1>
-        <div style={{ width: '24px' }} />
+        <h1 className="text-xl font-bold text-[#145952]">Qoot - {lang === 'ar' ? 'مدربك الشخصي' : 'Your Coach'}</h1>
+        <div className="w-6"></div>
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '16px 0' }}>
-        {messages.map((msg, idx) => <ChatMessage key={idx} message={msg} lang={lang} />)}
-        {isLoading && <div style={{ padding: '12px 16px', textAlign: 'center', color: C.muted }}>{lang === 'ar' ? 'يجيب...' : 'Thinking...'}</div>}
+      {/* Chat messages */}
+      <div className="flex-1 overflow-y-auto p-4">
+        {messages.map((msg) => (
+          <ChatMessage key={msg.id} message={msg} lang={lang} />
+        ))}
+        {isLoading && <div className="text-center text-[#94A3B8] p-2">{lang === 'ar' ? 'يجيب...' : 'Thinking...'}</div>}
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Image preview */}
       {imagePreview && (
-        <div style={{ padding: '8px 16px', background: C.cardLight, display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <img src={imagePreview} alt="preview" style={{ width: '60px', height: '60px', borderRadius: '8px', objectFit: 'cover' }} />
-          <span style={{ flex: 1, fontSize: '14px', color: C.text }}>{imageFile?.name}</span>
-          <button onClick={() => { setImageFile(null); setImagePreview(null); if(fileInputRef.current) fileInputRef.current.value = ''; }} style={{ background: 'transparent', border: 'none', fontSize: '20px', cursor: 'pointer', color: C.danger }}>✕</button>
+        <div className="p-2 bg-[#1E293B] flex items-center gap-2">
+          <img src={imagePreview} alt="preview" className="w-16 h-16 object-cover rounded" />
+          <span className="flex-1 text-sm text-[#F8FAFC]">{imageFile?.name}</span>
+          <button onClick={() => { setImageFile(null); setImagePreview(null); }} className="text-red-500 text-xl">✕</button>
         </div>
       )}
 
-      <div style={{ padding: '16px', borderTop: `1px solid ${C.border}`, background: C.bg }}>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+      {/* Input area */}
+      <div className="p-4 border-t border-[#334155] bg-[#0B0F19]">
+        <div className="flex gap-2 items-center">
           <input
             type="text"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-            placeholder={getPlaceholder()}
-            style={{ flex: 1, padding: '12px 16px', borderRadius: '24px', border: `1px solid ${C.border}`, background: C.cardLight, color: C.text, fontSize: '14px', outline: 'none' }}
+            placeholder={lang === 'ar' ? 'اكتب رسالتك...' : 'Type your message...'}
+            className="flex-1 px-4 py-3 rounded-full bg-[#1E293B] border border-[#334155] text-[#F8FAFC] focus:outline-none focus:border-[#145952]"
           />
-          <input type="file" accept="image/*" ref={fileInputRef} onChange={handleImageSelect} style={{ display: 'none' }} />
-          <button onClick={() => fileInputRef.current?.click()} style={{ background: C.cardLight, border: `1px solid ${C.border}`, borderRadius: '50%', width: '44px', height: '44px', cursor: 'pointer', fontSize: '20px' }}>📷</button>
-          <button onClick={handleSendMessage} disabled={isLoading || (!inputText.trim() && !imageFile)} style={{ background: C.teal, border: 'none', borderRadius: '24px', padding: '12px 20px', color: '#fff', cursor: 'pointer', fontWeight: '600', opacity: (isLoading || (!inputText.trim() && !imageFile)) ? 0.6 : 1 }}>➤</button>
+          <input type="file" accept="image/*" ref={fileInputRef} onChange={handleImageSelect} className="hidden" />
+          <button onClick={() => fileInputRef.current?.click()} className="bg-[#1E293B] border border-[#334155] rounded-full w-12 h-12 text-2xl">📷</button>
+          <button onClick={handleSendMessage} disabled={isLoading || (!inputText.trim() && !imageFile)} className="bg-[#145952] rounded-full px-5 py-3 text-white font-semibold disabled:opacity-50">➤</button>
         </div>
       </div>
 
-      <SidebarPlan
-        isOpen={showPlanSidebar}
-        onClose={() => setShowPlanSidebar(false)}
-        plan={currentPlan}
-        userMetrics={userMetrics}
-        lang={lang}
-        weekProgress={weekProgress}
-        onPayment={handlePayment}
-      />
-
-      <SidebarProfile
-        isOpen={showProfileSidebar}
-        onClose={() => setShowProfileSidebar(false)}
-        userProfile={userProfile}
-        lang={lang}
-        onUpdate={async (updates) => {
-          await updateUserProfile(updates);
-          await regeneratePlan();
-          setShowProfileSidebar(false);
-        }}
-      />
+      {/* Sidebars */}
+      <SidebarPlan isOpen={showPlanSidebar} onClose={() => setShowPlanSidebar(false)} plan={currentPlan} gamification={gamification} lang={lang} />
+      <SidebarProfile isOpen={showProfileSidebar} onClose={() => setShowProfileSidebar(false)} userProfile={userProfile} lang={lang} onUpdate={async (data) => { /* update profile and regenerate plan */ }} />
     </div>
   );
 };
