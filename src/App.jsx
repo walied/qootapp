@@ -3,6 +3,7 @@ import { C } from "./constants";
 import LandingScreen from "./screens/LandingScreen";
 import AuthScreen from "./screens/AuthScreen";
 import AICoachScreen from "./screens/AICoachScreen";
+import { SpeedInsights } from '@vercel/speed-insights/react';
 
 function AppContent() {
   const { screen } = useApp();
@@ -18,6 +19,7 @@ function App() {
   return (
     <div style={{ minHeight: "100vh", background: C.bg }}>
       <AppContent />
+      <SpeedInsights />
     </div>
   );
 }
